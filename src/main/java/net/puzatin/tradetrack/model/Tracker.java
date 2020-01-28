@@ -1,8 +1,20 @@
 package net.puzatin.tradetrack.model;
 
-public class Track {
 
+import org.springframework.context.annotation.Primary;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "trackers")
+public class Tracker {
+
+    @Id
     private String pubKey;
+
     private String secKey;
 
     private String name;
