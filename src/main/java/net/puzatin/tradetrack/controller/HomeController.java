@@ -1,7 +1,10 @@
 package net.puzatin.tradetrack.controller;
 
+import com.binance.api.client.BinanceApiClientFactory;
+import com.binance.api.client.BinanceApiRestClient;
 import net.puzatin.tradetrack.model.Tracker;
 import net.puzatin.tradetrack.service.TrackerService;
+import net.puzatin.tradetrack.util.TrackerValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,10 +14,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
-public class HomeContoller {
+public class HomeController {
 
     @Autowired
     private TrackerService trackerService;
+
+    @Autowired
+    private TrackerValidator trackerValidator;
+
 
     @GetMapping("/")
     public String home(Model model){
@@ -24,12 +31,20 @@ public class HomeContoller {
 
     @PostMapping("/")
     public String addTracker(@ModelAttribute Tracker tracker, BindingResult result){
+        trackerValidator.validate(tracker, result);
         if(result.hasErrors()) {
-            System.out.println("Ошибка при добавлении трекера");
             return "home";
         }
-            trackerService.add(tracker);
-        System.out.println("Попытка добавить трекер");
+        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(tracker.getPubKey(),tracker.getSecKey());
+        BinanceApiRestClient client = factory.newRestClient();
+
+        // Test connectivity
+        client.ping();
+
+
+
+
+        trackerService.add(tracker);
             return "home";
     }
 

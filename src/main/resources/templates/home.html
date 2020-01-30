@@ -10,7 +10,8 @@ Add tracking
 <form th:action="@{/}" method="post">
         <!--/*@thymesVar id="tracker" type="net.puzatin.tradetrack.model.Tracker"*/-->
     <p>Public key: <input type="text" th:field="*{tracker.pubKey}" /></p>
-    <p>Secret key: <input type="text" th:field="*{tracker.secKey}" /></p>
+    <p>Secret key: <input type="password" th:field="*{tracker.secKey}" /></p>
+    <p th:errors="*{tracker.pubKey}"></p>
     <p><input type="submit" value="Submit" /></p>
 
 </form>
