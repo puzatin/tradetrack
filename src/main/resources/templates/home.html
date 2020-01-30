@@ -7,13 +7,21 @@
 </head>
 <body>
 Add tracking
+<!--/*@thymesVar id="tracker" type="net.puzatin.tradetrack.model.Tracker"*/-->
 <form th:action="@{/}" method="post">
-        <!--/*@thymesVar id="tracker" type="net.puzatin.tradetrack.model.Tracker"*/-->
+    <p>Name: <input type="text" th:field="*{tracker.name}" /></p>
     <p>Public key: <input type="text" th:field="*{tracker.pubKey}" /></p>
     <p>Secret key: <input type="password" th:field="*{tracker.secKey}" /></p>
     <p th:errors="*{tracker.pubKey}"></p>
+    <p th:errors="*{tracker.name}"></p>
     <p><input type="submit" value="Submit" /></p>
-
 </form>
+
+<ul  th:each="tracker : ${trackers}">
+    <li class="list-group-item" th:text="${tracker.name}">
+    </li>
+</ul>
+
+
 </body>
 </html>

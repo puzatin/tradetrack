@@ -16,8 +16,13 @@ public class TrackerServiceImpl implements TrackerService {
     private TrackerRepository trackerRepository;
 
     @Override
+    public Tracker findByName(String name) {
+        return trackerRepository.findByName(name);
+    }
+
+    @Override
     public List<Tracker> getAll() {
-        return null;
+        return trackerRepository.findAll();
     }
 
     @Override

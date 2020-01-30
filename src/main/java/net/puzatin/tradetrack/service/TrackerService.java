@@ -6,6 +6,8 @@ import java.util.List;
 
 public interface TrackerService {
 
+    Tracker findByName(String name);
+
     List<Tracker> getAll();
 
     void add(Tracker track);

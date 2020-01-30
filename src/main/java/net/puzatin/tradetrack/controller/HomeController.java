@@ -26,6 +26,8 @@ public class HomeController {
     @GetMapping("/")
     public String home(Model model){
         model.addAttribute("tracker", new Tracker());
+        model.addAttribute("trackers", trackerService.getAll());
+
         return "home";
     }
 
@@ -42,10 +44,8 @@ public class HomeController {
         client.ping();
 
 
-
-
         trackerService.add(tracker);
-            return "home";
+            return "redirect:/";
     }
 
 }

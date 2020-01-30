@@ -26,6 +26,10 @@ public class TrackerValidator implements Validator {
     public void validate(Object o, Errors errors) {
         Tracker tracker = (Tracker) o;
 
+        if(trackerService.findByName(tracker.getName()) != null){
+            errors.rejectValue("name","","Name already in use");
+        }
+
         try {
             BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(tracker.getPubKey(),tracker.getSecKey());
             BinanceApiRestClient client = factory.newRestClient();
