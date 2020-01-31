@@ -8,7 +8,7 @@ public interface TrackerService {
 
     Tracker findByName(String name);
 
-    List<Tracker> getAll();
+    List<Tracker> getAllPublic();
 
     void add(Tracker track);
 

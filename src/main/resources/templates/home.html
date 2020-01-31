@@ -12,6 +12,7 @@ Add tracking
     <p>Name: <input type="text" th:field="*{tracker.name}" /></p>
     <p>Public key: <input type="text" th:field="*{tracker.pubKey}" /></p>
     <p>Secret key: <input type="password" th:field="*{tracker.secKey}" /></p>
+    <p>Public: <input type="checkbox" th:field="*{tracker.public}" /></p>
     <p th:errors="*{tracker.pubKey}"></p>
     <p th:errors="*{tracker.name}"></p>
     <p><input type="submit" value="Submit" /></p>

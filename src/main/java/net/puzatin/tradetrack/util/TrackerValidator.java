@@ -30,13 +30,13 @@ public class TrackerValidator implements Validator {
             errors.rejectValue("name","","Name already in use");
         }
 
-        try {
-            BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(tracker.getPubKey(),tracker.getSecKey());
-            BinanceApiRestClient client = factory.newRestClient();
-            client.getAccount();
-        } catch (BinanceApiException e) {
-            errors.rejectValue("pubKey", "", "Invalid API key");
-        }
+//        try {
+//            BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(tracker.getPubKey(),tracker.getSecKey());
+//            BinanceApiRestClient client = factory.newRestClient();
+//            client.getAccount();
+//        } catch (BinanceApiException e) {
+//            errors.rejectValue("pubKey", "", "Invalid API key");
+//        }
 
     }
 }

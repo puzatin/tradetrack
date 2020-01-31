@@ -21,8 +21,9 @@ public class TrackerServiceImpl implements TrackerService {
     }
 
     @Override
-    public List<Tracker> getAll() {
-        return trackerRepository.findAll();
+    public List<Tracker> getAllPublic() {
+
+        return trackerRepository.findByisPublicTrue();
     }
 
     @Override

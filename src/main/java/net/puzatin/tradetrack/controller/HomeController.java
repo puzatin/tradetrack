@@ -26,7 +26,7 @@ public class HomeController {
     @GetMapping("/")
     public String home(Model model){
         model.addAttribute("tracker", new Tracker());
-        model.addAttribute("trackers", trackerService.getAll());
+        model.addAttribute("trackers", trackerService.getAllPublic());
 
         return "home";
     }
