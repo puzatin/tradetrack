@@ -11,7 +11,13 @@ public interface TrackerRepository extends JpaRepository<Tracker, String> {
 
     Tracker findByName(String name);
 
+    List<Tracker> findByisValidTrue();
+
     List<Tracker> findByisPublicTrue();
+
+    Tracker findByPubKey(String pubKey);
+
+    Tracker findBySecKey(String secKey);
 
 
 }

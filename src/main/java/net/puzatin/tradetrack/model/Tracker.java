@@ -6,7 +6,6 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "trackers")
-
 public class Tracker {
 
     @Id
@@ -20,6 +19,15 @@ public class Tracker {
 
     private boolean isPublic;
 
+    private boolean isValid;
+
+    public void setValid(boolean valid) {
+        isValid = valid;
+    }
+
+    public boolean isValid() {
+        return isValid;
+    }
 
     public String getPubKey() {
         return pubKey;

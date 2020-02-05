@@ -22,6 +22,14 @@ Add tracking
     <li class="list-group-item" th:text="${tracker.name}">
     </li>
 </ul>
+Search
+<form th:action="@{/search}" method="get">
+    <input type="text" name="tracker" id="search" />
+    <input type="submit" value="Search"/>
+</form>
+
+
+
 
 
 </body>

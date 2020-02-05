@@ -27,7 +27,28 @@ public class TrackerServiceImpl implements TrackerService {
     }
 
     @Override
+    public List<Tracker> getAllValid() {
+        return trackerRepository.findByisValidTrue();
+    }
+
+    @Override
+    public List<Tracker> getAll() {
+        return trackerRepository.findAll();
+    }
+
+    @Override
     public void add(Tracker tracker) {
+        tracker.setValid(true);
         trackerRepository.save(tracker);
+    }
+
+    @Override
+    public Tracker findByPubKey(String pubKey) {
+        return trackerRepository.findByPubKey(pubKey);
+    }
+
+    @Override
+    public Tracker findBySecKey(String secKey) {
+        return trackerRepository.findBySecKey(secKey);
     }
 }
