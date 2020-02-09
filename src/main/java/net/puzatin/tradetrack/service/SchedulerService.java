@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -39,11 +40,12 @@ public class SchedulerService {
             ThreadLocal.withInitial(() -> new DecimalFormat("0.00"));
 
 
-    @Scheduled(cron = "*/10 * * * * *")
+//    @Scheduled(cron = "0 */5 * * * *")
     public void recordSnapshot(){
 
-
         if(BinanceUtil.ping()) {
+            HashMap<String, String> prices = BinanceUtil.getPrices();
+            double BTCprice = BinanceUtil.getBTCprice();
             List<Tracker> trackers = trackerService.getAllValid();
             trackers.parallelStream().forEach(tracker -> {
                 Snapshot snapshot = new Snapshot();
@@ -52,21 +54,23 @@ public class SchedulerService {
                 String sec = tracker.getSecKey();
 
 
-                double balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(pub, sec);
+                double balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(pub, sec, prices, BTCprice);
 
-                if (balanceInBTC == -1) {
+                if (balanceInBTC != -1) {
+                    balanceInBTC = Double.parseDouble(formatBTC.get().format(balanceInBTC).replace(',', '.'));
+                    double balanceInUSDT = Double.parseDouble(formatUSDT.get().format(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC)).replace(',', '.'));
+
+                    snapshot.setBalanceInBTC(balanceInBTC);
+                    snapshot.setBalanceInUSDT(balanceInUSDT);
+                    snapshot.setTimestamp(Instant.now().getEpochSecond());
+                    snapshot.setDate(OffsetDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                    snapshot.setTracker(tracker);
+                    snapshotService.add(snapshot);
+                } else {
                     tracker.setValid(false);
                     trackerRepository.save(tracker);
                 }
-                balanceInBTC = Double.parseDouble(formatBTC.get().format(BinanceUtil.getTotalAccountBalanceInBTC(pub, sec)).replace(',', '.'));
-                double balanceInUSDT = Double.parseDouble(formatUSDT.get().format(BinanceUtil.getTotalAccountBalanceInUSDT(BinanceUtil.getBTCprice(), balanceInBTC)).replace(',', '.'));
 
-                snapshot.setBalanceInBTC(balanceInBTC);
-                snapshot.setBalanceInUSDT(balanceInUSDT);
-                snapshot.setTimestamp(Instant.now().getEpochSecond());
-                snapshot.setDate(OffsetDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                snapshot.setTracker(tracker);
-                snapshotService.add(snapshot);
 
             });
 

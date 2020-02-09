@@ -27,6 +27,11 @@ public class TrackerServiceImpl implements TrackerService {
     }
 
     @Override
+    public List<Tracker> getAllPublicAndSnapshotMore24() {
+        return trackerRepository.getAllisPublicAndSnapshotMore24();
+    }
+
+    @Override
     public List<Tracker> getAllValid() {
         return trackerRepository.findByisValidTrue();
     }

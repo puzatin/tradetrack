@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.List;
 
 
 @Service
@@ -16,6 +17,11 @@ public class SnapshotServiceImpl implements SnapshotService {
 
     @Autowired
     SnapshotRepository snapshotRepository;
+
+    @Override
+    public List<Snapshot> findByPubKey(String pubKey) {
+        return snapshotRepository.findBypubKey(pubKey);
+    }
 
     @Override
     public void add(Snapshot snapshot) {

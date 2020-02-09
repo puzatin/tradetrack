@@ -3,6 +3,7 @@ package net.puzatin.tradetrack.model;
 
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "trackers")
@@ -13,13 +14,22 @@ public class Tracker {
 
     private String secKey;
 
-
     private String name;
 
+    @OneToMany(mappedBy = "tracker")
+    private List<Snapshot> snapshots;
 
     private boolean isPublic;
 
     private boolean isValid;
+
+    public List<Snapshot> getSnapshots() {
+        return snapshots;
+    }
+
+    public void setSnapshots(List<Snapshot> snapshots) {
+        this.snapshots = snapshots;
+    }
 
     public void setValid(boolean valid) {
         isValid = valid;

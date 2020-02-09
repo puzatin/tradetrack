@@ -1,12 +1,35 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" integrity="sha256-R4pqcOYV8lt7snxMQO/HSbVCFRPMdrhAFMH+vr9giYI=" crossorigin="anonymous"></script>
+    <style>
+        canvas{
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+        .chart-container {
+            width: 1000px;
+            margin-left: 40px;
+            margin-right: 40px;
+            margin-bottom: 40px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
 Add tracking
+
 <!--/*@thymesVar id="tracker" type="net.puzatin.tradetrack.model.Tracker"*/-->
 <form th:action="@{/}" method="post">
     <p>Name: <input type="text" th:field="*{tracker.name}" /></p>
@@ -18,18 +41,113 @@ Add tracking
     <p><input type="submit" value="Submit" /></p>
 </form>
 
-<ul  th:each="tracker : ${trackers}">
-    <li class="list-group-item" th:text="${tracker.name}">
-    </li>
-</ul>
 Search
 <form th:action="@{/search}" method="get">
-    <input type="text" name="tracker" id="search" />
+    <input type="text" name="trackerPubKey" id="search" />
     <input type="submit" value="Search"/>
 </form>
 
+<div class="container">
+</div>
+<script th:inline="javascript">
+
+    var timeFormat = 'MM/DD/YYYY HH:mm';
+
+    function format(timestamp) {
+            var dates = [];
+         timestamp.forEach(function(timestamp){
+           dates.push(moment.unix(timestamp).format('MM/DD/YYYY HH:mm'));
+        });
+         return dates;
+    }
 
 
+    function createConfig(name) {
+
+        return {
+            type: 'line',
+            data: {
+                labels: format(name.date),
+                datasets: [{
+                    label: 'Balance in USDT',
+                    data: name.balanceUSDT,
+                    backgroundColor: '#21a27c',
+                    borderColor: '#21a27c',
+                    fill: false,
+                    pointRadius: 1,
+                    // pointHoverRadius: 15,
+                    showLine: true // no line shown
+                }
+                ,{
+                    label: 'Balance in BTC',
+                    data: name.balanceBTC,
+                    backgroundColor: '#f79413',
+                    borderColor: '#f79413',
+                    fill: false,
+                    pointRadius: 1,
+                    // pointHoverRadius: 15,
+                    showLine: true // no line shown
+                }]
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: name.name
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            parser: timeFormat,
+                            distribution: 'series',
+                            // displayFormats: {
+                            //     quarter: 'MMM YYYY'
+                            // }
+                            tooltipFormat: 'll HH:mm'
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Date'
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        type: 'logarithmic',
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Balance'
+                        }
+                    }]
+                },
+                // legend: {
+                //     display: true
+                // },
+                // elements: {
+                //     point: {
+                //         pointStyle: name.name
+                //     }
+                // }
+             },
+        };
+    }
+
+    window.onload = function() {
+        var container = document.querySelector('.container');
+        [[${list}]].forEach(function(name) {
+            var div = document.createElement('div');
+            div.classList.add('chart-container');
+
+            var canvas = document.createElement('canvas');
+            div.appendChild(canvas);
+            container.appendChild(div);
+
+            var ctx = canvas.getContext('2d');
+            var config = createConfig(name);
+            new Chart(ctx, config);
+        });
+    };
+</script>
 
 
 </body>

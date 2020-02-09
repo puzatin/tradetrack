@@ -11,6 +11,8 @@ public interface TrackerService {
 
     List<Tracker> getAllPublic();
 
+    List<Tracker> getAllPublicAndSnapshotMore24();
+
     List<Tracker> getAllValid();
 
     List<Tracker> getAll();

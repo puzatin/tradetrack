@@ -4,10 +4,93 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" integrity="sha256-R4pqcOYV8lt7snxMQO/HSbVCFRPMdrhAFMH+vr9giYI=" crossorigin="anonymous"></script>
+
 </head>
 <body>
 
-<p th:text="${tracker.name}"></p>
+<canvas id="searchChart" width="400" height="400"></canvas>
+<script>
+
+    function format(timestamp) {
+        var dates = [];
+        timestamp.forEach(function(timestamp){
+            dates.push(moment.unix(timestamp).format('MM/DD/YYYY HH:mm'));
+        });
+        return dates;
+    }
+
+    var snapshots = [[${snapshots}]];
+
+    var ctx = document.getElementById('searchChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: format(snapshots.date),
+            datasets: [{
+                label: 'Balance in USDT',
+                data: snapshots.balanceUSDT,
+                backgroundColor: '#21a27c',
+                borderColor: '#21a27c',
+                fill: false,
+                pointRadius: 1,
+                // pointHoverRadius: 15,
+                showLine: true // no line shown
+            }
+                ,{
+                    label: 'Balance in BTC',
+                    data: snapshots.balanceBTC,
+                    backgroundColor: '#f79413',
+                    borderColor: '#f79413',
+                    fill: false,
+                    pointRadius: 1,
+                    // pointHoverRadius: 15,
+                    showLine: true // no line shown
+                }]
+        },
+        options: {
+            responsive: true,
+            title: {
+                display: true,
+                text: snapshots.name
+            },
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    time: {
+                        parser: timeFormat,
+                        distribution: 'series',
+                        // displayFormats: {
+                        //     quarter: 'MMM YYYY'
+                        // }
+                        tooltipFormat: 'll HH:mm'
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Date'
+                    }
+                }],
+                yAxes: [{
+                    display: true,
+                    type: 'logarithmic',
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Balance'
+                    }
+                }]
+            },
+            // legend: {
+            //     display: true
+            // },
+            // elements: {
+            //     point: {
+            //         pointStyle: name.name
+            //     }
+            // }
+        }
+    });
+</script>
 
 </body>
 </html>

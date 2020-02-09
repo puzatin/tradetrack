@@ -2,13 +2,11 @@ package net.puzatin.tradetrack.util;
 
 import com.binance.api.client.*;
 import com.binance.api.client.constant.Util;
-import com.binance.api.client.domain.account.Account;
 import com.binance.api.client.domain.account.AssetBalance;
 import com.binance.api.client.domain.market.TickerPrice;
 import com.binance.api.client.exception.BinanceApiException;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+
 import java.util.HashMap;
 import java.util.List;
 
@@ -17,15 +15,12 @@ public final class BinanceUtil {
     private BinanceUtil(){
     }
 
-    private static HashMap<String, String> prices;
-    private static double BTCprice;
     private static BinanceApiRestClient client;
 
    static  {
        try {
+           System.out.println("static block");
            client = BinanceApiClientFactory.newInstance().newRestClient();
-           prices = getPrices(client);
-           BTCprice = Double.parseDouble(prices.get("BTCUSDT"));
        } catch (BinanceApiException e) {
            e.printStackTrace();
        }
@@ -44,14 +39,12 @@ public final class BinanceUtil {
 
 
     public static double getBTCprice() {
-        return BTCprice;
+        System.out.println("getBTCprice");
+        return Double.parseDouble(client.getPrice("BTCUSDT").getPrice());
     }
 
-    public static HashMap<String, String> getPrices() {
-        return prices;
-    }
 
-    public static double getTotalAccountBalanceInBTC(String pubKey, String secKey){
+    public static double getTotalAccountBalanceInBTC(String pubKey, String secKey, HashMap<String, String> prices, double BTCprice){
         double spotBalance = getTotalSpotBalance(pubKey, secKey, prices);
        if(spotBalance != -1) {
            return  spotBalance +
@@ -93,13 +86,15 @@ public final class BinanceUtil {
            }
            return totalAccountBalance;
        } catch (BinanceApiException e) {
+
            return -1;
        }
 
        }
 
 
-    public static HashMap<String, String> getPrices(BinanceApiRestClient client) {
+    public static HashMap<String, String> getPrices() {
+        System.out.println("getprices");
         HashMap<String, String> prices = new HashMap<>();
         for (TickerPrice tickerPrice : client.getAllPrices()) {
             prices.put(tickerPrice.getSymbol(), tickerPrice.getPrice());

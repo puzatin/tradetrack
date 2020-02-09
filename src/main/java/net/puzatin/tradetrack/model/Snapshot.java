@@ -6,7 +6,6 @@ import org.springframework.format.annotation.NumberFormat;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "snapshots")
 public class Snapshot {
 
     @Id @GeneratedValue
@@ -23,6 +22,7 @@ public class Snapshot {
     private String date;
 
     private long timestamp;
+
 
 
     public long getId() {
