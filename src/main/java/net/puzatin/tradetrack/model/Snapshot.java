@@ -1,15 +1,18 @@
 package net.puzatin.tradetrack.model;
 
 
-import org.springframework.format.annotation.NumberFormat;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
+import java.time.Instant;
+
 
 @Entity
+@Table(name = "snapshots")
 public class Snapshot {
 
     @Id @GeneratedValue
-    private long Id;
+    private long id;
 
     @ManyToOne
     @JoinColumn(name = "pubKey")
@@ -19,18 +22,35 @@ public class Snapshot {
 
     private double balanceInUSDT;
 
-    private String date;
+    private double deltaDepositInBTC;
+
+    private double deltaDepositInUSDT;
 
     private long timestamp;
 
 
-
     public long getId() {
-        return Id;
+        return id;
     }
 
     public void setId(long id) {
-        Id = id;
+        this.id = id;
+    }
+
+    public double getDeltaDepositInBTC() {
+        return deltaDepositInBTC;
+    }
+
+    public void setDeltaDepositInBTC(double deltaDepositInBTC) {
+        this.deltaDepositInBTC = deltaDepositInBTC;
+    }
+
+    public double getDeltaDepositInUSDT() {
+        return deltaDepositInUSDT;
+    }
+
+    public void setDeltaDepositInUSDT(double deltaDepositInUSDT) {
+        this.deltaDepositInUSDT = deltaDepositInUSDT;
     }
 
     public Tracker getTracker() {
@@ -39,6 +59,14 @@ public class Snapshot {
 
     public void setTracker(Tracker tracker) {
         this.tracker = tracker;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public double getBalanceInBTC() {
@@ -55,22 +83,6 @@ public class Snapshot {
 
     public void setBalanceInUSDT(double balanceInUSDT) {
         this.balanceInUSDT = balanceInUSDT;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
     }
 
 

@@ -40,7 +40,7 @@ public class SchedulerService {
             ThreadLocal.withInitial(() -> new DecimalFormat("0.00"));
 
 
-//    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 */1 * * * *")
     public void recordSnapshot(){
 
         if(BinanceUtil.ping()) {
@@ -48,10 +48,21 @@ public class SchedulerService {
             double BTCprice = BinanceUtil.getBTCprice();
             List<Tracker> trackers = trackerService.getAllValid();
             trackers.parallelStream().forEach(tracker -> {
-                Snapshot snapshot = new Snapshot();
-                System.out.println(tracker.getName());
                 String pub = tracker.getPubKey();
                 String sec = tracker.getSecKey();
+
+                Long lastTimestamp = snapshotService.getLastTimestamp(pub);
+                System.out.println(lastTimestamp);
+                double deltaDepositInBTC = 0;
+                double deltaDepositInUSDT = 0;
+                Snapshot snapshot = new Snapshot();
+                System.out.println(tracker.getName());
+
+
+                if(lastTimestamp != null){
+                    deltaDepositInBTC = BinanceUtil.getDeltaDepositInBTC(pub, sec, lastTimestamp, prices);
+                    deltaDepositInUSDT = BinanceUtil.getDeltaDepositInUSDT(BTCprice, deltaDepositInBTC);
+                }
 
 
                 double balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(pub, sec, prices, BTCprice);
@@ -60,10 +71,11 @@ public class SchedulerService {
                     balanceInBTC = Double.parseDouble(formatBTC.get().format(balanceInBTC).replace(',', '.'));
                     double balanceInUSDT = Double.parseDouble(formatUSDT.get().format(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC)).replace(',', '.'));
 
+                    snapshot.setDeltaDepositInBTC(deltaDepositInBTC);
+                    snapshot.setDeltaDepositInUSDT(deltaDepositInUSDT);
                     snapshot.setBalanceInBTC(balanceInBTC);
                     snapshot.setBalanceInUSDT(balanceInUSDT);
-                    snapshot.setTimestamp(Instant.now().getEpochSecond());
-                    snapshot.setDate(OffsetDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                    snapshot.setTimestamp(Instant.now().toEpochMilli());
                     snapshot.setTracker(tracker);
                     snapshotService.add(snapshot);
                 } else {

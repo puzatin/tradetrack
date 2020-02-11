@@ -9,6 +9,8 @@ public interface SnapshotService {
 
     List<Snapshot> findByPubKey(String pubKey);
 
+    Long getLastTimestamp(String pubKey);
+
 
     void add(Snapshot snapshot);
 

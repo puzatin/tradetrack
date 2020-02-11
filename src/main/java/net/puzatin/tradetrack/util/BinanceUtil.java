@@ -2,7 +2,7 @@ package net.puzatin.tradetrack.util;
 
 import com.binance.api.client.*;
 import com.binance.api.client.constant.Util;
-import com.binance.api.client.domain.account.AssetBalance;
+import com.binance.api.client.domain.account.*;
 import com.binance.api.client.domain.market.TickerPrice;
 import com.binance.api.client.exception.BinanceApiException;
 
@@ -102,6 +102,8 @@ public final class BinanceUtil {
         return prices;
     }
 
+
+
     public static double getTotalMarginBalance(String pubKey, String secKey){
         try {
             BinanceApiMarginRestClient client = BinanceApiClientFactory.newInstance(pubKey, secKey).newMarginRestClient();
@@ -123,6 +125,70 @@ public final class BinanceUtil {
     public static double getTotalLendingBalance(String pubKey, String secKey) {
         BinanceApiLendingClient client = BinanceApiClientFactory.newInstance(pubKey, secKey).newLendingRestClient();
         return Double.parseDouble(client.getLendingAccount().getTotalAmountInBTC());
+    }
+
+    public static double getDeltaDepositInBTC(String pubKey, String secKey, Long startTime, HashMap<String, String> prices){
+       try {
+           BinanceApiRestClient client = BinanceApiClientFactory.newInstance(pubKey, secKey).newRestClient();
+          return getDeposit(client, startTime, prices) + getWithdraw(client, startTime, prices);
+       } catch (BinanceApiException e) {
+           e.getMessage();
+           return 0;
+       }
+    }
+
+    public static double getDeltaDepositInUSDT(double BTCprice, double amount) {
+       return BTCprice * amount;
+    }
+
+
+
+    public static double getDeposit(BinanceApiRestClient client, Long startTime, HashMap<String, String> prices){
+       double totalDeposit = 0;
+//    status   0:pending,6: credited but cannot withdraw, 1:success)0:pending,6: credited but cannot withdraw, 1:success)
+       List<DepositHistory> deposits = client.getDepositHistory(startTime);
+       for (DepositHistory deposit : deposits) {
+           if (deposit.getStatus() == 6 || deposit.getStatus() == 1) {
+               String asset = deposit.getCoin();
+               double amount = Double.parseDouble(deposit.getAmount());
+               if (!asset.equals(Util.BTC_TICKER)) {
+                   if (Util.isFiatCurrency(asset)) {
+                       double price = Double.parseDouble(prices.get(Util.BTC_TICKER + asset));
+                       totalDeposit += amount / price;
+                   } else {
+                       double price = Double.parseDouble(prices.get(asset + Util.BTC_TICKER));
+                       totalDeposit += amount * price;
+                   }
+               } else totalDeposit += amount;
+           }
+       }
+
+
+       return totalDeposit;
+
+    }
+
+    public static double getWithdraw(BinanceApiRestClient client, Long startTime, HashMap<String, String> prices){
+        double totalWithdraw = 0;
+//      status  0:Email Sent,1:Cancelled 2:Awaiting Approval 3:Rejected 4:Processing 5:Failure 6:Completed
+        List<WithdrawHistory> withdraws = client.getWithdrawHistory(startTime);
+             for (WithdrawHistory withdraw : withdraws) {
+               if (withdraw.getStatus() == 6) {
+                 String asset = withdraw.getCoin();
+                 double amount = Double.parseDouble(withdraw.getAmount());
+                 if (!asset.equals(Util.BTC_TICKER)) {
+                     if (Util.isFiatCurrency(asset)) {
+                         double price = Double.parseDouble(prices.get(Util.BTC_TICKER + asset));
+                         totalWithdraw += amount / price;
+                     } else {
+                         double price = Double.parseDouble(prices.get(asset + Util.BTC_TICKER));
+                         totalWithdraw += amount * price;
+                     }
+                 } else totalWithdraw += amount;
+             }
+         }
+
+        return totalWithdraw * -1;
     }
 
 

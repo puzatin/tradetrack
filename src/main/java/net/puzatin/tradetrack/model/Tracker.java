@@ -23,6 +23,7 @@ public class Tracker {
 
     private boolean isValid;
 
+
     public List<Snapshot> getSnapshots() {
         return snapshots;
     }

@@ -24,6 +24,11 @@ public class SnapshotServiceImpl implements SnapshotService {
     }
 
     @Override
+    public Long getLastTimestamp(String pubKey) {
+        return snapshotRepository.getLastTimestamp(pubKey);
+    }
+
+    @Override
     public void add(Snapshot snapshot) {
         snapshotRepository.save(snapshot);
     }
