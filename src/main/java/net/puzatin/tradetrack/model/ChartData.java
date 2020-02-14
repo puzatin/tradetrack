@@ -11,9 +11,9 @@ public class ChartData {
 
     private List<Long> date;
 
-    private List<Double> balanceBTC;
+    private List<Double> profitInBTC;
 
-    private List<Double> balanceUSDT;
+    private List<Double> profitInUSDT;
 
     public String getName() {
         return name;
@@ -31,19 +31,19 @@ public class ChartData {
         this.date = date;
     }
 
-    public List<Double> getBalanceBTC() {
-        return balanceBTC;
+    public List<Double> getProfitInBTC() {
+        return profitInBTC;
     }
 
-    public void setBalanceBTC(List<Double> balanceBTC) {
-        this.balanceBTC = balanceBTC;
+    public void setProfitInBTC(List<Double> profitInBTC) {
+        this.profitInBTC = profitInBTC;
     }
 
-    public List<Double> getBalanceUSDT() {
-        return balanceUSDT;
+    public List<Double> getProfitInUSDT() {
+        return profitInUSDT;
     }
 
-    public void setBalanceUSDT(List<Double> balanceUSDT) {
-        this.balanceUSDT = balanceUSDT;
+    public void setProfitInUSDT(List<Double> profitInUSDT) {
+        this.profitInUSDT = profitInUSDT;
     }
 }

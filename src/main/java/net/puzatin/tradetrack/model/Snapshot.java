@@ -26,8 +26,27 @@ public class Snapshot {
 
     private double deltaDepositInUSDT;
 
+    private double profitInBTC;
+
+    private double profitInUSDT;
+
     private long timestamp;
 
+    public double getProfitInBTC() {
+        return profitInBTC;
+    }
+
+    public void setProfitInBTC(double profitInBTC) {
+        this.profitInBTC = profitInBTC;
+    }
+
+    public double getProfitInUSDT() {
+        return profitInUSDT;
+    }
+
+    public void setProfitInUSDT(double profitInUSDT) {
+        this.profitInUSDT = profitInUSDT;
+    }
 
     public long getId() {
         return id;

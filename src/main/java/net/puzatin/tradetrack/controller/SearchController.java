@@ -44,8 +44,8 @@ public class SearchController {
             date.add(snapshot.getTimestamp());
         });
         chartData.setName(tracker.getName());
-        chartData.setBalanceBTC(balanceBTC);
-        chartData.setBalanceUSDT(balanceUSDT);
+        chartData.setProfitInBTC(balanceBTC);
+        chartData.setProfitInUSDT(balanceUSDT);
         chartData.setDate(date);
         model.addAttribute("snapshots", chartData);
 

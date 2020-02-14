@@ -7,6 +7,8 @@ import com.binance.api.client.domain.market.TickerPrice;
 import com.binance.api.client.exception.BinanceApiException;
 
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -14,6 +16,8 @@ public final class BinanceUtil {
 
     private BinanceUtil(){
     }
+
+    public static final List<String> CRYPTOFIAT_CURRENCY = Collections.unmodifiableList(Arrays.asList("USDT", "BUSD", "PAX", "TUSD", "USDC", "USDS"));
 
     private static BinanceApiRestClient client;
 
@@ -25,6 +29,13 @@ public final class BinanceUtil {
            e.printStackTrace();
        }
 
+    }
+
+    public static boolean isCryptoFiatCurrency(String symbol) {
+        for (String fiat : CRYPTOFIAT_CURRENCY) {
+            if (symbol.equals(fiat)) return true;
+        }
+        return false;
     }
 
     public static boolean ping(){
@@ -44,8 +55,13 @@ public final class BinanceUtil {
     }
 
 
-    public static double getTotalAccountBalanceInBTC(String pubKey, String secKey, HashMap<String, String> prices, double BTCprice){
-        double spotBalance = getTotalSpotBalance(pubKey, secKey, prices);
+    public static double getTotalAccountBalanceInBTC(String pubKey, String secKey, HashMap<String, String> prices, double BTCprice, boolean first){
+       double spotBalance;
+       if(first){
+            spotBalance = getTotalSpotBalanceFirst(pubKey, secKey, prices);
+       } else {
+           spotBalance = getTotalSpotBalance(pubKey, secKey, prices);
+       }
        if(spotBalance != -1) {
            return  spotBalance +
                    getTotalMarginBalance(pubKey, secKey) +
@@ -61,7 +77,7 @@ public final class BinanceUtil {
     }
 
     // Get total account balance in BTC (spot only)
-    public static double getTotalSpotBalance(String pubKey, String secKey, HashMap<String, String> prices) {
+    public static double getTotalSpotBalanceFirst(String pubKey, String secKey, HashMap<String, String> prices) {
        try {
            BinanceApiRestClient client = BinanceApiClientFactory.newInstance(pubKey, secKey).newRestClient();
            List<AssetBalance> balances = client.getAccount().getBalances();
@@ -73,8 +89,8 @@ public final class BinanceUtil {
                double amount = Double.parseDouble(asset.getFree()) + Double.parseDouble(asset.getLocked());
                if (!asset.getAsset().equals(Util.BTC_TICKER)) {
                    if (Util.isFiatCurrency(asset.getAsset())) {
-                       double price = Double.parseDouble(prices.get(Util.BTC_TICKER + asset.getAsset()));
-                       totalAccountBalance += amount / price;
+                           double price = Double.parseDouble(prices.get(Util.BTC_TICKER + asset.getAsset()));
+                           totalAccountBalance += amount / price;
                    } else {
                        double price = Double.parseDouble(prices.get(asset.getAsset() + Util.BTC_TICKER));
                        totalAccountBalance += amount * price;
@@ -86,11 +102,46 @@ public final class BinanceUtil {
            }
            return totalAccountBalance;
        } catch (BinanceApiException e) {
-
+            e.printStackTrace();
            return -1;
        }
 
        }
+
+
+    public static double getTotalSpotBalance(String pubKey, String secKey, HashMap<String, String> prices) {
+        try {
+            BinanceApiRestClient client = BinanceApiClientFactory.newInstance(pubKey, secKey).newRestClient();
+            List<AssetBalance> balances = client.getAccount().getBalances();
+            balances.removeIf(asset -> (Double.parseDouble(asset.getFree()) + Double.parseDouble(asset.getLocked()) == 0 ||
+                    (asset.getAsset().charAt(0) == 'L' && asset.getAsset().charAt(1) == 'D')));
+
+            double totalAccountBalance = 0;
+            for (AssetBalance asset : balances) {
+                double amount = Double.parseDouble(asset.getFree()) + Double.parseDouble(asset.getLocked());
+                if (!asset.getAsset().equals(Util.BTC_TICKER)) {
+                    if (BinanceUtil.isCryptoFiatCurrency(asset.getAsset())) {
+                        double price = Double.parseDouble(prices.get(Util.BTC_TICKER + asset.getAsset()));
+                        totalAccountBalance += amount / price;
+                    } else {
+                        double price = Double.parseDouble(prices.get(asset.getAsset() + Util.BTC_TICKER));
+                        totalAccountBalance += amount * price;
+                    }
+
+                } else {
+                    totalAccountBalance += amount;
+                }
+            }
+            return totalAccountBalance;
+        } catch (BinanceApiException e) {
+            e.printStackTrace();
+            return -1;
+        }
+
+    }
+
+
+
 
 
     public static HashMap<String, String> getPrices() {
@@ -116,7 +167,7 @@ public final class BinanceUtil {
     public static double getTotalFuturesBalance(String pubKey, String secKey, double BTCprice) {
         try {
             BinanceApiFuturesRestClient client = BinanceApiClientFactory.newInstance(pubKey, secKey).newFuturesRestClient();
-            return Double.parseDouble(client.getBalance().getBalance()) / BTCprice;
+            return Double.parseDouble(client.getFuturesAccount().getTotalWalletBalance()) / BTCprice;
         } catch (BinanceApiException e) {
             return 0;
         }
@@ -173,7 +224,7 @@ public final class BinanceUtil {
 //      status  0:Email Sent,1:Cancelled 2:Awaiting Approval 3:Rejected 4:Processing 5:Failure 6:Completed
         List<WithdrawHistory> withdraws = client.getWithdrawHistory(startTime);
              for (WithdrawHistory withdraw : withdraws) {
-               if (withdraw.getStatus() == 6) {
+               if (withdraw.getStatus() == 6 || withdraw.getStatus() == 4) {
                  String asset = withdraw.getCoin();
                  double amount = Double.parseDouble(withdraw.getAmount());
                  if (!asset.equals(Util.BTC_TICKER)) {

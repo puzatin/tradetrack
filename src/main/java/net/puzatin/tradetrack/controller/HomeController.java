@@ -47,12 +47,12 @@ public class HomeController {
             List<Double> balanceUSDT = new ArrayList<>();
             List<Long> date = new ArrayList<>();
             snapshotList.forEach(snapshot -> {
-                balanceBTC.add(snapshot.getBalanceInBTC());
-                balanceUSDT.add(snapshot.getBalanceInUSDT());
+                balanceBTC.add(snapshot.getProfitInBTC());
+                balanceUSDT.add(snapshot.getProfitInUSDT());
                 date.add(snapshot.getTimestamp());
             });
-            chartData.setBalanceBTC(balanceBTC);
-            chartData.setBalanceUSDT(balanceUSDT);
+            chartData.setProfitInBTC(balanceBTC);
+            chartData.setProfitInUSDT(balanceUSDT);
             chartData.setDate(date);
             listChartData.add(chartData);
         });
@@ -69,14 +69,8 @@ public class HomeController {
         if(result.hasErrors()) {
             return "home";
         }
-        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(tracker.getPubKey(),tracker.getSecKey());
-        BinanceApiRestClient client = factory.newRestClient();
-
-        // Test connectivity
-        client.ping();
-
-
         trackerService.add(tracker);
+        snapshotService.firstSnapshot(tracker);
             return "redirect:/";
     }
 

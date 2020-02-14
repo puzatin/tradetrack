@@ -20,6 +20,11 @@ public interface TrackerService {
     void add(Tracker track);
 
 
+    void setInvalid(Tracker track);
+
+    void setValid(Tracker tracker);
+
+
     Tracker findByPubKey(String pubKey);
 
     Tracker findBySecKey(String secKey);

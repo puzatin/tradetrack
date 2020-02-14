@@ -43,6 +43,17 @@ public class TrackerServiceImpl implements TrackerService {
 
     @Override
     public void add(Tracker tracker) {
+        trackerRepository.save(tracker);
+    }
+
+    @Override
+    public void setInvalid(Tracker tracker) {
+        tracker.setValid(false);
+        trackerRepository.save(tracker);
+    }
+
+    @Override
+    public void setValid(Tracker tracker) {
         tracker.setValid(true);
         trackerRepository.save(tracker);
     }
