@@ -23,4 +23,10 @@ public interface SnapshotRepository extends JpaRepository<Snapshot, Long> {
     @Query(value = "SELECT balance_inbtc FROM snapshots WHERE pub_key=? ORDER BY timestamp LIMIT 1", nativeQuery = true)
     Double getFirstBalanceBTC(String pubKey);
 
+    @Query(value = "SELECT SUM(delta_deposit_inusdt) FROM snapshots WHERE pub_key=?", nativeQuery = true)
+    Double getSumDeltaDepInUSDT(String pubKey);
+
+    @Query(value = "SELECT SUM(delta_deposit_inbtc) FROM snapshots WHERE pub_key=?", nativeQuery = true)
+    Double getSumDeltaDepInBTC(String pubKey);
+
 }

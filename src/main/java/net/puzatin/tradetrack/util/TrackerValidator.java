@@ -11,11 +11,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
+
+import javax.validation.ConstraintViolation;
+import java.util.Set;
+
 @Component
 public class TrackerValidator implements Validator {
 
     @Autowired
     private TrackerService trackerService;
+
+
 
     @Override
     public boolean supports(Class<?> aClass) {
@@ -24,18 +30,24 @@ public class TrackerValidator implements Validator {
 
     @Override
     public void validate(Object o, Errors errors) {
+
+
         Tracker tracker = (Tracker) o;
 
         if(trackerService.findByName(tracker.getName()) != null){
-            errors.rejectValue("name","","Name already in use");
+            errors.rejectValue("name","","name already in use!");
+        }
+
+        if(trackerService.findByPubKey(tracker.getPubKey()) != null){
+            errors.rejectValue("pubKey","","tracker already exists");
         }
 
         try {
             BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(tracker.getPubKey(),tracker.getSecKey());
             BinanceApiRestClient client = factory.newRestClient();
-            client.getAccount();
+            client.getAccount().getBuyerCommission();
         } catch (BinanceApiException e) {
-            errors.rejectValue("pubKey", "", "Invalid API key");
+                errors.rejectValue("pubKey", "", e.getMessage());
         }
 
     }

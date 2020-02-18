@@ -3,6 +3,9 @@ package net.puzatin.tradetrack.model;
 
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 @Entity
@@ -12,8 +15,12 @@ public class Tracker {
     @Id
     private String pubKey;
 
+
     private String secKey;
 
+    @Pattern(message = "characters allowed _-@#.", regexp = "^[\\w-@#.]+$")
+    @NotBlank(message = "name must not be empty!")
+    @Size(min = 2, max = 20, message = "name must be between 2 and 20 characters!")
     private String name;
 
     @OneToMany(mappedBy = "tracker")

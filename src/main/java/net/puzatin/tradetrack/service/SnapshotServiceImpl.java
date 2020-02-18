@@ -54,6 +54,16 @@ public class SnapshotServiceImpl implements SnapshotService {
     }
 
     @Override
+    public Double getSumDeltaDepInUSDT(String pubKey) {
+        return snapshotRepository.getSumDeltaDepInUSDT(pubKey);
+    }
+
+    @Override
+    public Double getSumDeltaDepInBTC(String pubKey) {
+        return snapshotRepository.getSumDeltaDepInBTC(pubKey);
+    }
+
+    @Override
     public void add(Snapshot snapshot) {
         snapshotRepository.save(snapshot);
     }
@@ -87,7 +97,7 @@ public class SnapshotServiceImpl implements SnapshotService {
     }
 
 
-    @Scheduled(cron = "0 */5 * * * *")
+//    @Scheduled(cron = "0 */5 * * * *")
     public void recordSnapshot(){
 
         if(BinanceUtil.ping()) {
@@ -122,8 +132,13 @@ public class SnapshotServiceImpl implements SnapshotService {
                     balanceInBTC = Double.parseDouble(formatBTC.get().format(balanceInBTC).replace(',', '.'));
                     double balanceInUSDT = Double.parseDouble(formatUSDT.get().format(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC)).replace(',', '.'));
 
-                    snapshot.setProfitInUSDT(Double.parseDouble(formatUSDT.get().format((balanceInUSDT - deltaDepositInUSDT) / firstBalanceInUSDT * 100 - 100).replace(',', '.')));
-                    snapshot.setProfitInBTC(Double.parseDouble(formatUSDT.get().format((balanceInBTC - deltaDepositInBTC) / firstBalanceInBTC * 100 - 100).replace(',', '.')));
+                    System.out.println(balanceInUSDT);
+                    System.out.println(getSumDeltaDepInUSDT(pub));
+                    System.out.println(firstBalanceInUSDT);
+                    System.out.println(deltaDepositInUSDT);
+
+                    snapshot.setProfitInUSDT(Double.parseDouble(formatUSDT.get().format((balanceInUSDT - (getSumDeltaDepInUSDT(pub) + deltaDepositInUSDT)) / firstBalanceInUSDT * 100 - 100).replace(',', '.')));
+                    snapshot.setProfitInBTC(Double.parseDouble(formatUSDT.get().format((balanceInBTC - (getSumDeltaDepInBTC(pub) + deltaDepositInBTC)) / firstBalanceInBTC * 100 - 100).replace(',', '.')));
                     snapshot.setDeltaDepositInBTC(deltaDepositInBTC);
                     snapshot.setDeltaDepositInUSDT(deltaDepositInUSDT);
                     snapshot.setBalanceInBTC(balanceInBTC);

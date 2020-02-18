@@ -16,6 +16,9 @@ public interface SnapshotService {
 
     Double getFirstBalanceInBTC(String pubKey);
 
+    Double getSumDeltaDepInUSDT(String pubKey);
+
+    Double getSumDeltaDepInBTC(String pubKey);
 
     void add(Snapshot snapshot);
 

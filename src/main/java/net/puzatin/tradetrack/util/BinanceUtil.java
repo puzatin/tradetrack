@@ -76,7 +76,7 @@ public final class BinanceUtil {
         return BTCprice * totalAmountBTC;
     }
 
-    // Get total account balance in BTC (spot only)
+    // TODO rewrite after emergence api for fiat
     public static double getTotalSpotBalanceFirst(String pubKey, String secKey, HashMap<String, String> prices) {
        try {
            BinanceApiRestClient client = BinanceApiClientFactory.newInstance(pubKey, secKey).newRestClient();
@@ -219,27 +219,59 @@ public final class BinanceUtil {
 
     }
 
+    // TODO fix bug if user cancels withdraw after one period
     public static double getWithdraw(BinanceApiRestClient client, Long startTime, HashMap<String, String> prices){
         double totalWithdraw = 0;
 //      status  0:Email Sent,1:Cancelled 2:Awaiting Approval 3:Rejected 4:Processing 5:Failure 6:Completed
         List<WithdrawHistory> withdraws = client.getWithdrawHistory(startTime);
              for (WithdrawHistory withdraw : withdraws) {
-               if (withdraw.getStatus() == 6 || withdraw.getStatus() == 4) {
+                 int status = withdraw.getStatus();
                  String asset = withdraw.getCoin();
                  double amount = Double.parseDouble(withdraw.getAmount());
-                 if (!asset.equals(Util.BTC_TICKER)) {
-                     if (Util.isFiatCurrency(asset)) {
-                         double price = Double.parseDouble(prices.get(Util.BTC_TICKER + asset));
-                         totalWithdraw += amount / price;
-                     } else {
-                         double price = Double.parseDouble(prices.get(asset + Util.BTC_TICKER));
-                         totalWithdraw += amount * price;
+                 if (status == 6 ||
+                         status == 4 ||
+                         status == 2 ||
+                         status == 0) {
+                     if (!asset.equals(Util.BTC_TICKER)) {
+                         if (Util.isFiatCurrency(asset)) {
+                             double price = Double.parseDouble(prices.get(Util.BTC_TICKER + asset));
+                             amount /= price;
+                         } else {
+                             double price = Double.parseDouble(prices.get(asset + Util.BTC_TICKER));
+                             amount *= price;
+                         }
                      }
-                 } else totalWithdraw += amount;
-             }
-         }
+                     totalWithdraw -= amount;
+                 }
 
-        return totalWithdraw * -1;
+             }
+
+        List<WithdrawHistory> prevWithdraws = client.getWithdrawHistory(startTime - 900000, startTime);
+        for (WithdrawHistory prevWithdraw : prevWithdraws) {
+            int status = prevWithdraw.getStatus();
+            String asset = prevWithdraw.getCoin();
+            double amount = Double.parseDouble(prevWithdraw.getAmount());
+            if (status == 1 ||
+                    status == 3 ||
+                    status == 5) {
+                System.out.println("cancl");
+                if (!asset.equals(Util.BTC_TICKER)) {
+                    if (Util.isFiatCurrency(asset)) {
+                        double price = Double.parseDouble(prices.get(Util.BTC_TICKER + asset));
+                        amount /= price;
+                    } else {
+                        double price = Double.parseDouble(prices.get(asset + Util.BTC_TICKER));
+                        amount *= price;
+                    }
+                }
+                totalWithdraw += amount;
+            }
+
+        }
+
+
+
+        return totalWithdraw;
     }
 
 
