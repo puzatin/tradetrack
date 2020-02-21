@@ -18,18 +18,28 @@ public class Tracker {
 
     private String secKey;
 
-    @Pattern(message = "characters allowed _-@#.", regexp = "^[\\w-@#.]+$")
+    @Pattern(message = "characters allowed _-@.", regexp = "^[\\w-@.]+$")
     @NotBlank(message = "name must not be empty!")
     @Size(min = 2, max = 20, message = "name must be between 2 and 20 characters!")
     private String name;
 
-    @OneToMany(mappedBy = "tracker")
+    @Size(max = 140, message = "description cannot be more than 140 characters!")
+    private String description;
+
+    @OneToMany(mappedBy = "tracker", cascade = CascadeType.ALL)
     private List<Snapshot> snapshots;
 
     private boolean isPublic;
 
     private boolean isValid;
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public List<Snapshot> getSnapshots() {
         return snapshots;

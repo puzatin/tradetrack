@@ -9,6 +9,8 @@ public interface TrackerService {
 
     Tracker findByName(String name);
 
+    Tracker findByisPublicTrueAndName(String name);
+
     List<Tracker> getAllPublic();
 
     List<Tracker> getAllPublicAndSnapshotMore24();
@@ -17,10 +19,13 @@ public interface TrackerService {
 
     List<Tracker> getAll();
 
-    void add(Tracker track);
+    void add(Tracker tracker);
 
+    void update(Tracker tracker);
 
-    void setInvalid(Tracker track);
+    void delete(String pubKey);
+
+    void setInvalid(Tracker tracker);
 
     void setValid(Tracker tracker);
 

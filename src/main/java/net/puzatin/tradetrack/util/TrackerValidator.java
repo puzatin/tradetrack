@@ -51,4 +51,12 @@ public class TrackerValidator implements Validator {
         }
 
     }
+
+    public void nameValidate(Object o, Errors errors){
+        Tracker tracker = (Tracker) o;
+
+        if(trackerService.findByName(tracker.getName()) != null){
+            errors.rejectValue("name","","name already in use!");
+        }
+    }
 }

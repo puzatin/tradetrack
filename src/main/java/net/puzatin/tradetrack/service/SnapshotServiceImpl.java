@@ -1,5 +1,6 @@
 package net.puzatin.tradetrack.service;
 
+import net.puzatin.tradetrack.model.ChartData;
 import net.puzatin.tradetrack.model.Snapshot;
 import net.puzatin.tradetrack.model.Tracker;
 import net.puzatin.tradetrack.repository.SnapshotRepository;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -153,6 +155,28 @@ public class SnapshotServiceImpl implements SnapshotService {
             });
 
         }
+    }
+
+    public ChartData fillChartData(Tracker tracker){
+
+        List<Snapshot> snapshotList = findByPubKey(tracker.getPubKey());
+        ChartData chartData = new ChartData();
+        chartData.setName(tracker.getName());
+        List<Double> balanceBTC = new ArrayList<>();
+        List<Double> balanceUSDT = new ArrayList<>();
+        List<Long> date = new ArrayList<>();
+        snapshotList.forEach(snapshot -> {
+            balanceBTC.add(snapshot.getProfitInBTC());
+            balanceUSDT.add(snapshot.getProfitInUSDT());
+            date.add(snapshot.getTimestamp());
+        });
+        chartData.setDescription(tracker.getDescription());
+        chartData.setProfitInBTC(balanceBTC);
+        chartData.setProfitInUSDT(balanceUSDT);
+        chartData.setDate(date);
+
+
+        return chartData;
     }
 
 

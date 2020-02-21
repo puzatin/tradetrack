@@ -32,22 +32,10 @@ public class SearchController {
 
     @GetMapping("/search")
     public String search(@RequestParam String trackerPubKey, Model model){
-        ChartData chartData = new ChartData();
+
         Tracker tracker = trackerService.findByPubKey(trackerPubKey);
-        List<Snapshot> snapshotList = snapshotService.findByPubKey(tracker.getPubKey());
-        List<Double> balanceBTC = new ArrayList<>();
-        List<Double> balanceUSDT = new ArrayList<>();
-        List<Long> date = new ArrayList<>();
-        snapshotList.forEach(snapshot -> {
-            balanceBTC.add(snapshot.getBalanceInBTC());
-            balanceUSDT.add(snapshot.getBalanceInUSDT());
-            date.add(snapshot.getTimestamp());
-        });
-        chartData.setName(tracker.getName());
-        chartData.setProfitInBTC(balanceBTC);
-        chartData.setProfitInUSDT(balanceUSDT);
-        chartData.setDate(date);
-        model.addAttribute("snapshots", chartData);
+
+        model.addAttribute("snapshot", snapshotService.fillChartData(tracker));
 
         return "search";
     }

@@ -49,6 +49,11 @@ Add tracking
             <td th:if="${#fields.hasErrors('secKey')}" th:errors="*{secKey}">Secret key Error</td>
         </tr>
         <tr>
+            <td>Description:</td>
+            <td><input type="text" th:field="*{description}" /></td>
+            <td th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description Error</td>
+        </tr>
+        <tr>
             <td>Public:</td>
             <td><input type="checkbox" th:field="*{public}" /></td>
         </tr>
@@ -58,15 +63,24 @@ Add tracking
     </table>
 </form>
 
+
 Search
-<form th:action="@{/search}" method="get">
-    <input type="text" name="trackerPubKey" id="search" />
+<form name="search" method="get" onsubmit="return OnSubmitForm();">
+    <input type="text" id="trackerName" />
     <input type="submit" value="Search"/>
 </form>
+
 
 <div class="container">
 </div>
 <script th:inline="javascript">
+
+    function OnSubmitForm()
+    {
+        var trackerName = document.getElementById("trackerName").value;
+        document.search.action="tracker/"+trackerName;
+        return true;
+    }
 
     var timeFormat = 'MM/DD/YYYY HH:mm';
 
@@ -80,6 +94,7 @@ Search
 
 
     function createConfig(snapshot) {
+
 
         return {
             type: 'line',
@@ -140,7 +155,7 @@ Search
                         },
                         scaleLabel: {
                             display: true,
-                            labelString: 'Date'
+                            labelString: snapshot.description
                         }
                     }],
                     yAxes: [{

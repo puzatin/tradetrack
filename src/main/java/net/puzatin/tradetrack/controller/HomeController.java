@@ -13,14 +13,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @Controller
@@ -45,27 +43,39 @@ public class HomeController {
         List<Tracker> trackerList = trackerService.getAllPublicAndSnapshotMore24();
         List<ChartData> listChartData = new ArrayList<>();
         trackerList.forEach(tracker -> {
-            List<Snapshot> snapshotList = snapshotService.findByPubKey(tracker.getPubKey());
-            ChartData chartData = new ChartData();
-            chartData.setName(tracker.getName());
-            List<Double> balanceBTC = new ArrayList<>();
-            List<Double> balanceUSDT = new ArrayList<>();
-            List<Long> date = new ArrayList<>();
-            snapshotList.forEach(snapshot -> {
-                balanceBTC.add(snapshot.getProfitInBTC());
-                balanceUSDT.add(snapshot.getProfitInUSDT());
-                date.add(snapshot.getTimestamp());
-            });
-            chartData.setProfitInBTC(balanceBTC);
-            chartData.setProfitInUSDT(balanceUSDT);
-            chartData.setDate(date);
-            listChartData.add(chartData);
+            listChartData.add(snapshotService.fillChartData(tracker));
         });
         model.addAttribute("list", listChartData);
 
         return "home";
     }
 
+    @RequestMapping(path = {"/tracker/{pubKey}/edit"})
+    public String editTracker(Model model, @PathVariable("pubKey") Optional<String> pubKey){
+
+        if (pubKey.isPresent()) {
+            Tracker tracker = trackerService.findByPubKey(pubKey.get());
+            model.addAttribute("tracker", tracker);
+        }
+        return "edit-tracker";
+    }
+
+
+    @GetMapping(value = {"/tracker/{name}"})
+    public String findByName(@PathVariable("name") String name, Model model){
+        Tracker tracker;
+        if (name.length() == 64) {
+          tracker =  trackerService.findByPubKey(name);
+        } else {
+            tracker = trackerService.findByisPublicTrueAndName(name);
+        }
+
+        if(tracker != null){
+            model.addAttribute("tracker", tracker);
+            model.addAttribute("snapshot", snapshotService.fillChartData(tracker));
+        }
+        return "search";
+    }
 
 
     @PostMapping("/")
@@ -80,6 +90,24 @@ public class HomeController {
         trackerService.add(tracker);
         snapshotService.firstSnapshot(tracker);
             return "redirect:/";
+    }
+
+    @PostMapping("/update")
+    public String updateTracker(@Valid @ModelAttribute Tracker tracker, BindingResult result){
+        trackerValidator.nameValidate(tracker, result);
+        System.out.println("upd");
+        if(result.hasErrors()) {
+            System.out.println("eerr");
+            return "edit-tracker";
+        }
+        trackerService.update(tracker);
+        return "redirect:/";
+    }
+
+    @GetMapping(path = "/tracker/{pubKey}/delete")
+    public String deleteTracker(@PathVariable("pubKey")  String pubKey){
+        trackerService.delete(pubKey);
+        return "redirect:/";
     }
 
 }

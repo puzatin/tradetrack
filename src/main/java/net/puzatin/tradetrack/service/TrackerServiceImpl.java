@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -21,8 +22,12 @@ public class TrackerServiceImpl implements TrackerService {
     }
 
     @Override
-    public List<Tracker> getAllPublic() {
+    public Tracker findByisPublicTrueAndName(String name) {
+        return trackerRepository.findByisPublicTrueAndName(name);
+    }
 
+    @Override
+    public List<Tracker> getAllPublic() {
         return trackerRepository.findByisPublicTrue();
     }
 
@@ -45,6 +50,38 @@ public class TrackerServiceImpl implements TrackerService {
     public void add(Tracker tracker) {
         trackerRepository.save(tracker);
     }
+
+    @Override
+    public void update(Tracker tracker) {
+        System.out.println(tracker.getPubKey());
+       Optional<Tracker> track = trackerRepository.findById(tracker.getPubKey());
+        if(track.isPresent())
+        {
+            Tracker updTrack = track.get();
+            updTrack.setName(tracker.getName());
+            updTrack.setDescription(tracker.getDescription());
+            updTrack.setPublic(tracker.isPublic());
+
+            trackerRepository.save(updTrack);
+
+        } else {
+            trackerRepository.save(tracker);
+        }
+
+    }
+
+    @Override
+    public void delete(String pubKey) {
+        Optional<Tracker> employee = trackerRepository.findById(pubKey);
+
+        if(employee.isPresent())
+        {
+            trackerRepository.deleteById(pubKey);
+        } else {
+            System.out.println("No employee record exist for given id");
+        }
+    }
+
 
     @Override
     public void setInvalid(Tracker tracker) {
