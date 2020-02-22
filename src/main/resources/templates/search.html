@@ -11,24 +11,19 @@
 
 
 
-
-
-        <a th:href="@{/tracker/{pubKey}/edit
+        <div th:if="${tracker?.pubKey}">
+            <a th:href="@{/tracker/{pubKey}/edit
         (pubKey=${tracker.pubKey})
         }">Edit</a>
 
-        <a th:href="@{/tracker/{pubKey}/delete
+            <a th:href="@{/tracker/{pubKey}/delete
         (pubKey=${tracker.pubKey})
         }" onclick="return confirm('Are you sure?')">Delete</a>
+        </div>
 
 
 
-
-
-
-<p th:text="${tracker.pubKey}"></p>
-
-<canvas id="myChart" width="400" height="400"></canvas>
+<canvas id="myChart" width="800" height="600"></canvas>
 <script th:inline="javascript">
 
     var timeFormat = 'MM/DD/YYYY HH:mm';

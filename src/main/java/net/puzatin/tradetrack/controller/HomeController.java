@@ -66,12 +66,12 @@ public class HomeController {
         Tracker tracker;
         if (name.length() == 64) {
           tracker =  trackerService.findByPubKey(name);
+          model.addAttribute("tracker", tracker);
         } else {
             tracker = trackerService.findByisPublicTrueAndName(name);
         }
 
         if(tracker != null){
-            model.addAttribute("tracker", tracker);
             model.addAttribute("snapshot", snapshotService.fillChartData(tracker));
         }
         return "search";
@@ -94,14 +94,19 @@ public class HomeController {
 
     @PostMapping("/update")
     public String updateTracker(@Valid @ModelAttribute Tracker tracker, BindingResult result){
-        trackerValidator.nameValidate(tracker, result);
-        System.out.println("upd");
+
+        String oldName = trackerService.findByPubKey(tracker.getPubKey()).getName();
+
+        if (!oldName.equals(tracker.getName())) {
+            trackerValidator.nameValidate(tracker, result);
+        }
+
         if(result.hasErrors()) {
-            System.out.println("eerr");
             return "edit-tracker";
         }
         trackerService.update(tracker);
-        return "redirect:/";
+        return "redirect:/tracker/" + tracker.getPubKey();
+
     }
 
     @GetMapping(path = "/tracker/{pubKey}/delete")
