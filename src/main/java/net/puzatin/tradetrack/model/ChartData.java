@@ -1,16 +1,9 @@
 package net.puzatin.tradetrack.model;
 
 
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
 import java.util.List;
 
-@Component
+
 public class ChartData {
 
     private String name;

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" integrity="sha256-R4pqcOYV8lt7snxMQO/HSbVCFRPMdrhAFMH+vr9giYI=" crossorigin="anonymous"></script>
+</head>
+<body>
+
+
+
+        <div th:if="${tracker?.pubKey}">
+            <a th:href="@{/tracker/{pubKey}/edit
+        (pubKey=${tracker.pubKey})
+        }">Edit</a>
+
+            <a th:href="@{/tracker/{pubKey}/delete
+        (pubKey=${tracker.pubKey})
+        }" onclick="return confirm('Are you sure?')">Delete</a>
+        </div>
+
+
+
+<canvas id="myChart" width="800" height="600"></canvas>
+<script th:inline="javascript">
+
+    var timeFormat = 'MM/DD/YYYY HH:mm';
+
+    function format(timestamp) {
+        var dates = [];
+        timestamp.forEach(function(timestamp){
+            dates.push(moment.unix(timestamp / 1000).format('MM/DD/YYYY HH:mm'));
+        });
+        return dates;
+    }
+
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: format([[${snapshot.date}]]),
+            datasets: [{
+                label: 'Profit in USDT',
+                data: [[${snapshot.profitInUSDT}]],
+                backgroundColor: '#21a27c',
+                borderColor: '#21a27c',
+                fill: false,
+                pointRadius: 2,
+                lineTension: 0,
+                // pointHoverRadius: 15,
+                showLine: true // no line shown
+            }
+                ,{
+                    label: 'Profit in BTC',
+                    data: [[${snapshot.profitInBTC}]],
+                    backgroundColor: '#f79413',
+                    borderColor: '#f79413',
+                    fill: false,
+                    pointRadius: 2,
+                    lineTension: 0,
+                    // pointHoverRadius: 15,
+                    showLine: true // no line shown
+                }]
+        },
+        options: {
+            responsive: false,
+            title: {
+                display: true,
+                text: [[${snapshot.name}]]
+            },
+            tooltips: {
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        return Chart.defaults.global.tooltips.callbacks.label(tooltipItem, data) + '%';
+                    }
+                },
+                mode: 'index',
+                intersect: false,
+            },
+            hover: {
+                mode: 'index',
+                intersect: false,
+            },
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    time: {
+                        parser: timeFormat,
+                        distribution: 'series',
+                        // displayFormats: {
+                        //     quarter: 'MMM YYYY'
+                        // }
+                        tooltipFormat: 'll HH:mm'
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: [[${snapshot.description}]]
+                    }
+                }],
+                yAxes: [{
+                    display: true,
+                    type: 'linear',
+                    ticks: {
+                        callback: function(tick) {
+                            return tick.toString() + '%';
+                        }
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Profit'
+                    }
+                }]
+            }
+        }
+    })
+</script>
+
+</body>
+</html>

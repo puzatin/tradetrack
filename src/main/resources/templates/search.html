@@ -4,11 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" integrity="sha256-R4pqcOYV8lt7snxMQO/HSbVCFRPMdrhAFMH+vr9giYI=" crossorigin="anonymous"></script>
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+    <style>
+        .highcharts-caption {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+    </style>
 </head>
 <body>
-
 
 
         <div th:if="${tracker?.pubKey}">
@@ -22,99 +27,74 @@
         </div>
 
 
-
-<canvas id="myChart" width="800" height="600"></canvas>
+<div id="container" style="width:80%; height:600px;"></div>
 <script th:inline="javascript">
 
-    var timeFormat = 'MM/DD/YYYY HH:mm';
 
-    function format(timestamp) {
-        var dates = [];
-        timestamp.forEach(function(timestamp){
-            dates.push(moment.unix(timestamp / 1000).format('MM/DD/YYYY HH:mm'));
-        });
-        return dates;
-    }
+        // Create the chart
+        let profitInUSDT = [[${snapshot.profitInUSDT}]],
+            profitInBTC = [[${snapshot.profitInBTC}]],
+            xAxisDate = [[${snapshot.date}]];
 
-    var ctx = document.getElementById('myChart').getContext('2d');
-    var myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: format([[${snapshot.date}]]),
-            datasets: [{
-                label: 'Profit in USDT',
-                data: [[${snapshot.profitInUSDT}]],
-                backgroundColor: '#21a27c',
-                borderColor: '#21a27c',
-                fill: false,
-                pointRadius: 2,
-                lineTension: 0,
-                // pointHoverRadius: 15,
-                showLine: true // no line shown
-            }
-                ,{
-                    label: 'Profit in BTC',
-                    data: [[${snapshot.profitInBTC}]],
-                    backgroundColor: '#f79413',
-                    borderColor: '#f79413',
-                    fill: false,
-                    pointRadius: 2,
-                    lineTension: 0,
-                    // pointHoverRadius: 15,
-                    showLine: true // no line shown
-                }]
-        },
-        options: {
-            responsive: false,
+
+        profitInUSDT = profitInUSDT.map((val, i) => [xAxisDate[i], val])
+        profitInBTC = profitInBTC.map((val, i) => [xAxisDate[i], val])
+
+        Highcharts.stockChart('container', {
             title: {
-                display: true,
                 text: [[${snapshot.name}]]
             },
-            tooltips: {
-                callbacks: {
-                    label: function(tooltipItem, data) {
-                        return Chart.defaults.global.tooltips.callbacks.label(tooltipItem, data) + '%';
-                    }
+
+            caption: {
+                styledMode: true,
+                useHTML: false,
+                align: 'center',
+                y: 0,
+                text:  [[${snapshot.description}]]
+            },
+
+            yAxis: {
+                opposite:false,
+                labels: {
+                    formatter: function () {
+                        return (this.value > 0 ? ' + ' : '') + this.value + '%';
+                    },
                 },
-                mode: 'index',
-                intersect: false,
-            },
-            hover: {
-                mode: 'index',
-                intersect: false,
-            },
-            scales: {
-                xAxes: [{
-                    type: 'time',
-                    time: {
-                        parser: timeFormat,
-                        distribution: 'series',
-                        // displayFormats: {
-                        //     quarter: 'MMM YYYY'
-                        // }
-                        tooltipFormat: 'll HH:mm'
-                    },
-                    scaleLabel: {
-                        display: true,
-                        labelString: [[${snapshot.description}]]
-                    }
-                }],
-                yAxes: [{
-                    display: true,
-                    type: 'linear',
-                    ticks: {
-                        callback: function(tick) {
-                            return tick.toString() + '%';
-                        }
-                    },
-                    scaleLabel: {
-                        display: true,
-                        labelString: 'Profit'
-                    }
+                plotLines: [{
+                    value: 0,
+                    width: 2,
+                    color: 'silver'
                 }]
-            }
-        }
-    })
+            },
+            legend: {
+                enabled: true,
+
+            },
+            tooltip: {
+                pointFormat: '{series.name} <b>{point.y}%</b>',
+
+                valueDecimals: 2,
+                split: true
+            },
+            series: [{
+                name: 'profit in USDT',
+                data: profitInUSDT,
+                color: '#21a27c',
+                tooltip: {
+                    valueDecimals: 2
+                }
+            },
+                {
+                    name: 'profit in BTC',
+                    data: profitInBTC,
+                    color: '#f79413',
+                    tooltip: {
+                        valueDecimals: 2
+                    }
+                }
+            ]
+        });
+
 </script>
 
 </body>

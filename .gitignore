@@ -30,5 +30,7 @@ build/
 ### VS Code ###
 .vscode/
 
+.properties
+src/main/appengine/
 prop
 tradestatsCredent.json

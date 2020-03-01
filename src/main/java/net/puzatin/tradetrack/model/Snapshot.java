@@ -3,33 +3,41 @@ package net.puzatin.tradetrack.model;
 
 
 import javax.persistence.*;
-import java.sql.Timestamp;
-import java.time.Instant;
+import javax.validation.constraints.Size;
 
 
 @Entity
-@Table(name = "snapshots")
+@Table(name = "tracker_snapshots")
 public class Snapshot {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private long id;
 
     @ManyToOne
-    @JoinColumn(name = "pubKey")
+    @JoinColumn(name = "own_pub_key")
     private Tracker tracker;
 
+    @Column(name = "balance_btc")
     private double balanceInBTC;
 
+    @Column(name = "balance_usdt")
     private double balanceInUSDT;
 
+
+    @Column(name = "delta_deposit_btc")
     private double deltaDepositInBTC;
 
+    @Column(name = "delta_deposit_usdt")
     private double deltaDepositInUSDT;
 
+    @Column(name = "profit_btc")
     private double profitInBTC;
 
+    @Column(name = "profit_usdt")
     private double profitInUSDT;
 
+    @Column(name = "timestamp")
     private long timestamp;
 
     public double getProfitInBTC() {

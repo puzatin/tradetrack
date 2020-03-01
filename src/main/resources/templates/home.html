@@ -5,27 +5,31 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" integrity="sha256-R4pqcOYV8lt7snxMQO/HSbVCFRPMdrhAFMH+vr9giYI=" crossorigin="anonymous"></script>
+
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
 <!--    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">-->
     <style>
-        canvas{
-            -moz-user-select: none;
-            -webkit-user-select: none;
-            -ms-user-select: none;
+        .highcharts-caption {
+
+            font-weight: 500;
+            font-size: 14px;
         }
+
         .chart-container {
-            width: 1000px;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+
+        }
+
+        .chart {
+            width: 80%;
             margin-left: 40px;
             margin-right: 40px;
             margin-bottom: 40px;
         }
-        .container {
-            display: flex;
-            flex-direction: column;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
+
     </style>
 </head>
 <body>
@@ -50,7 +54,7 @@ Add tracking
         </tr>
         <tr>
             <td>Description:</td>
-            <td><input type="text" th:field="*{description}" /></td>
+            <td><textarea maxlength="140" th:field="*{description}"></textarea></td>
             <td th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description Error</td>
         </tr>
         <tr>
@@ -71,8 +75,10 @@ Search
 </form>
 
 
-<div class="container">
+<div class="chart-container">
 </div>
+
+
 <script th:inline="javascript">
 
     function OnSubmitForm()
@@ -82,123 +88,117 @@ Search
         return true;
     }
 
-    var timeFormat = 'MM/DD/YYYY HH:mm';
-
-    function format(timestamp) {
-            var dates = [];
-         timestamp.forEach(function(timestamp){
-           dates.push(moment.unix(timestamp / 1000).format('MM/DD/YYYY HH:mm'));
-        });
-         return dates;
-    }
 
 
     function createConfig(snapshot) {
 
 
+        let profitInUSDT = snapshot.profitInUSDT,
+            profitInBTC = snapshot.profitInBTC,
+            xAxisDate = snapshot.date;
+
+
+        profitInUSDT = profitInUSDT.map((val, i) => [xAxisDate[i], val])
+        profitInBTC = profitInBTC.map((val, i) => [xAxisDate[i], val])
+
         return {
-            type: 'line',
-            data: {
-                labels: format(snapshot.date),
-                datasets: [{
-                    label: 'Profit in USDT',
-                    data: snapshot.profitInUSDT,
-                    backgroundColor: '#21a27c',
-                    borderColor: '#21a27c',
-                    fill: false,
-                    pointRadius: 2,
-                    lineTension: 0,
-                    // pointHoverRadius: 15,
-                    showLine: true // no line shown
-                }
-                ,{
-                    label: 'Profit in BTC',
-                    data: snapshot.profitInBTC,
-                    backgroundColor: '#f79413',
-                    borderColor: '#f79413',
-                    fill: false,
-                    pointRadius: 2,
-                    lineTension: 0,
-                    // pointHoverRadius: 15,
-                    showLine: true // no line shown
+
+            title: {
+                useHTML: false,
+                text:   '<a href="/tracker/' + snapshot.name + '"> ' + snapshot.name + ' </a>'
+            },
+            navigator: {
+                enabled: false
+            },
+
+            caption: {
+                styledMode: true,
+                useHTML: false,
+                align: 'center',
+                y: 0,
+                text:  snapshot.description
+            },
+
+            rangeSelector: {
+                selected: 6,
+                enabled: false,
+
+                },
+
+            scrollbar: {
+                enabled: false
+            },
+            yAxis: {
+                opposite:false,
+                labels: {
+                    formatter: function () {
+                        return (this.value > 0 ? ' + ' : '') + this.value + '%';
+                    },
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 2,
+                    color: 'silver'
                 }]
             },
-            options: {
-                responsive: true,
-                title: {
-                    display: true,
-                    text: snapshot.name
-                },
-                tooltips: {
-                    callbacks: {
-                        label: function(tooltipItem, data) {
-                            return Chart.defaults.global.tooltips.callbacks.label(tooltipItem, data) + '%';
-                        }
-                    },
-                    mode: 'index',
-                    intersect: false,
-                },
-                hover: {
-                    mode: 'index',
-                    intersect: false,
-                },
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        time: {
-                            parser: timeFormat,
-                            distribution: 'series',
-                            // displayFormats: {
-                            //     quarter: 'MMM YYYY'
-                            // }
-                            tooltipFormat: 'll HH:mm'
-                        },
-                        scaleLabel: {
-                            display: true,
-                            labelString: snapshot.description
-                        }
-                    }],
-                    yAxes: [{
-                        display: true,
-                        type: 'linear',
-                        ticks: {
-                            callback: function(tick) {
-                                return tick.toString() + '%';
-                            }
-                        },
-                        scaleLabel: {
-                            display: true,
-                            labelString: 'Profit'
-                        }
-                    }]
-                },
-                // legend: {
-                //     display: true
-                // },
-                // elements: {
-                //     point: {
-                //         pointStyle: name.name
-                //     }
-                // }
-             },
+            legend: {
+                enabled: true,
+
+            },
+            tooltip: {
+                pointFormat: '{series.name} <b>{point.y}%</b>',
+
+                valueDecimals: 2,
+                split: true
+            },
+            series: [{
+                name: 'profit in USDT',
+                data: profitInUSDT,
+                color: '#21a27c',
+                tooltip: {
+                    valueDecimals: 2
+                }
+            },
+                {
+                    name: 'profit in BTC',
+                    data: profitInBTC,
+                    color: '#f79413',
+                    tooltip: {
+                        valueDecimals: 2
+                    }
+                }
+            ]
+
         };
     }
 
+
+
     window.onload = function() {
-        var container = document.querySelector('.container');
+
+        let container = document.querySelector('.chart-container');
         [[${list}]].forEach(function(snapshot) {
-            var div = document.createElement('div');
-            div.classList.add('chart-container');
 
-            var canvas = document.createElement('canvas');
-            div.appendChild(canvas);
-            container.appendChild(div);
+            let chartcont = document.createElement('div');
+            chartcont.className = 'chart';
+            let desc = document.createElement('div');
+            desc.className = 'desc-container';
+            desc.innerHTML = snapshot.description;
 
-            var ctx = canvas.getContext('2d');
-            var config = createConfig(snapshot);
-            new Chart(ctx, config);
+            chartcont.append(desc);
+            container.append(chartcont);
+
+
+            let config = createConfig(snapshot);
+
+            Highcharts.stockChart(chartcont, config);
+
+
         });
+
     };
+
+
 </script>
 
 

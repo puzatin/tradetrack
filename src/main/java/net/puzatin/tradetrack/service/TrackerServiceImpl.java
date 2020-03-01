@@ -16,6 +16,7 @@ public class TrackerServiceImpl implements TrackerService {
     @Autowired
     private TrackerRepository trackerRepository;
 
+
     @Override
     public Tracker findByName(String name) {
         return trackerRepository.findByName(name);
@@ -53,7 +54,6 @@ public class TrackerServiceImpl implements TrackerService {
 
     @Override
     public void update(Tracker tracker) {
-        System.out.println(tracker.getPubKey());
        Optional<Tracker> track = trackerRepository.findById(tracker.getPubKey());
         if(track.isPresent())
         {

@@ -4,15 +4,14 @@ import net.puzatin.tradetrack.model.ChartData;
 import net.puzatin.tradetrack.model.Snapshot;
 import net.puzatin.tradetrack.model.Tracker;
 import net.puzatin.tradetrack.repository.SnapshotRepository;
-import net.puzatin.tradetrack.repository.TrackerRepository;
 import net.puzatin.tradetrack.util.BinanceUtil;
+import org.decimal4j.util.DoubleRounder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,10 +28,6 @@ public class SnapshotServiceImpl implements SnapshotService {
     @Autowired
     private TrackerService trackerService;
 
-    private static ThreadLocal<NumberFormat> formatBTC =
-            ThreadLocal.withInitial(() -> new DecimalFormat("0.00000000"));
-    private static ThreadLocal<NumberFormat> formatUSDT =
-            ThreadLocal.withInitial(() -> new DecimalFormat("0.00"));
 
 
     @Override
@@ -72,16 +67,16 @@ public class SnapshotServiceImpl implements SnapshotService {
 
     @Override
     public void firstSnapshot(Tracker tracker) {
+
         Snapshot snapshot = new Snapshot();
         boolean first = true;
         HashMap<String, String> prices = BinanceUtil.getPrices();
         double BTCprice = BinanceUtil.getBTCprice();
 
         double balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(tracker.getPubKey(), tracker.getSecKey(), prices, BTCprice, first);
-        System.out.println(tracker.getName());
         if (balanceInBTC != -1) {
-            balanceInBTC = Double.parseDouble(formatBTC.get().format(balanceInBTC).replace(',', '.'));
-            double balanceInUSDT = Double.parseDouble(formatUSDT.get().format(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC)).replace(',', '.'));
+            double balanceInUSDT = DoubleRounder.round(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC), 2);
+            balanceInBTC = DoubleRounder.round(balanceInBTC, 8);
 
             snapshot.setTracker(tracker);
             snapshot.setTimestamp(Instant.now().toEpochMilli());
@@ -99,13 +94,14 @@ public class SnapshotServiceImpl implements SnapshotService {
     }
 
 
-//    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void recordSnapshot(){
 
         if(BinanceUtil.ping()) {
             boolean first = false;
             HashMap<String, String> prices = BinanceUtil.getPrices();
             double BTCprice = BinanceUtil.getBTCprice();
+            System.out.println(BTCprice);
             List<Tracker> trackers = trackerService.getAllValid();
             trackers.parallelStream().forEach(tracker -> {
                 String pub = tracker.getPubKey();
@@ -116,31 +112,26 @@ public class SnapshotServiceImpl implements SnapshotService {
 
 
                 Long lastTimestamp = getLastTimestamp(pub);
-                System.out.println(lastTimestamp);
                 double deltaDepositInBTC;
                 double deltaDepositInUSDT;
                 Snapshot snapshot = new Snapshot();
-                System.out.println(tracker.getName());
 
-
-                deltaDepositInBTC = BinanceUtil.getDeltaDepositInBTC(pub, sec, lastTimestamp, prices);
-                deltaDepositInUSDT = BinanceUtil.getDeltaDepositInUSDT(BTCprice, deltaDepositInBTC);
+                deltaDepositInBTC = DoubleRounder.round(BinanceUtil.getDeltaDepositInBTC(pub, sec, lastTimestamp, prices), 8);
+                deltaDepositInUSDT = DoubleRounder.round(BinanceUtil.getDeltaDepositInUSDT(BTCprice, deltaDepositInBTC), 2);
 
 
 
                 double balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(pub, sec, prices, BTCprice, first);
 
                 if (balanceInBTC != -1) {
-                    balanceInBTC = Double.parseDouble(formatBTC.get().format(balanceInBTC).replace(',', '.'));
-                    double balanceInUSDT = Double.parseDouble(formatUSDT.get().format(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC)).replace(',', '.'));
+                    double balanceInUSDT = DoubleRounder.round(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC), 2);
+                    double profitInUSDT = DoubleRounder.round((balanceInUSDT - (getSumDeltaDepInUSDT(pub) + deltaDepositInUSDT)) / firstBalanceInUSDT * 100 - 100, 2);
+                    double profitInBTC = DoubleRounder.round((balanceInBTC - (getSumDeltaDepInBTC(pub) + deltaDepositInBTC)) / firstBalanceInBTC * 100 - 100, 2);
+                    balanceInBTC = DoubleRounder.round(balanceInBTC, 8);
 
-                    System.out.println(balanceInUSDT);
-                    System.out.println(getSumDeltaDepInUSDT(pub));
-                    System.out.println(firstBalanceInUSDT);
-                    System.out.println(deltaDepositInUSDT);
 
-                    snapshot.setProfitInUSDT(Double.parseDouble(formatUSDT.get().format((balanceInUSDT - (getSumDeltaDepInUSDT(pub) + deltaDepositInUSDT)) / firstBalanceInUSDT * 100 - 100).replace(',', '.')));
-                    snapshot.setProfitInBTC(Double.parseDouble(formatUSDT.get().format((balanceInBTC - (getSumDeltaDepInBTC(pub) + deltaDepositInBTC)) / firstBalanceInBTC * 100 - 100).replace(',', '.')));
+                    snapshot.setProfitInUSDT(profitInUSDT);
+                    snapshot.setProfitInBTC(profitInBTC);
                     snapshot.setDeltaDepositInBTC(deltaDepositInBTC);
                     snapshot.setDeltaDepositInUSDT(deltaDepositInUSDT);
                     snapshot.setBalanceInBTC(balanceInBTC);

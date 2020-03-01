@@ -13,24 +13,31 @@ import java.util.List;
 public class Tracker {
 
     @Id
+    @Size(max = 64)
+    @Column(name = "pubKey")
     private String pubKey;
 
-
+    @Column(name = "secKey")
+    @Size(max = 64)
     private String secKey;
 
     @Pattern(message = "characters allowed _-@.", regexp = "^[\\w-@.]+$")
     @NotBlank(message = "name must not be empty!")
     @Size(min = 2, max = 20, message = "name must be between 2 and 20 characters!")
+    @Column(name = "name")
     private String name;
 
     @Size(max = 140, message = "description cannot be more than 140 characters!")
+    @Column(name = "description")
     private String description;
 
     @OneToMany(mappedBy = "tracker", cascade = CascadeType.ALL)
     private List<Snapshot> snapshots;
 
+    @Column(name = "is_public")
     private boolean isPublic;
 
+    @Column(name = "is_valid")
     private boolean isValid;
 
     public String getDescription() {

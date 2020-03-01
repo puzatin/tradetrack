@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" integrity="sha256-R4pqcOYV8lt7snxMQO/HSbVCFRPMdrhAFMH+vr9giYI=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.4"></script>
+<!--    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">-->
+    <style>
+        canvas{
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+        .chart-container {
+            width: 1000px;
+            margin-left: 40px;
+            margin-right: 40px;
+            margin-bottom: 40px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+Add tracking
+<!--/*@thymesVar id="tracker" type="net.puzatin.tradetrack.model.Tracker"*/-->
+<form th:action="@{/}" method="post" th:object="${tracker}">
+    <table>
+        <tr>
+            <td>Name:</td>
+            <td><input type="text" th:field="*{name}" /></td>
+            <td th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name Error</td>
+        </tr>
+        <tr>
+            <td>Public key:</td>
+            <td><input type="text" th:field="*{pubKey}" /></td>
+            <td th:if="${#fields.hasErrors('pubKey')}" th:errors="*{pubKey}">Public key Error</td>
+        </tr>
+        <tr>
+            <td>Secret key:</td>
+            <td><input type="password" th:field="*{secKey}" /></td>
+            <td th:if="${#fields.hasErrors('secKey')}" th:errors="*{secKey}">Secret key Error</td>
+        </tr>
+        <tr>
+            <td>Description:</td>
+            <td><input type="text" th:field="*{description}" /></td>
+            <td th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description Error</td>
+        </tr>
+        <tr>
+            <td>Public:</td>
+            <td><input type="checkbox" th:field="*{public}" /></td>
+        </tr>
+        <tr>
+            <td><button type="submit">Submit</button></td>
+        </tr>
+    </table>
+</form>
+
+
+Search
+<form name="search" method="get" onsubmit="return OnSubmitForm();">
+    <input type="text" id="trackerName" />
+    <input type="submit" value="Search"/>
+</form>
+
+
+<div class="container">
+</div>
+<script th:inline="javascript">
+
+    function OnSubmitForm()
+    {
+        var trackerName = document.getElementById("trackerName").value;
+        document.search.action="tracker/"+trackerName;
+        return true;
+    }
+
+    var timeFormat = 'MM/DD/YYYY HH:mm';
+
+    function format(timestamp) {
+            var dates = [];
+         timestamp.forEach(function(timestamp){
+           dates.push(moment.unix(timestamp / 1000).format('MM/DD/YYYY HH:mm'));
+        });
+         return dates;
+    }
+
+
+    function createConfig(snapshot) {
+
+
+        return {
+            type: 'line',
+            data: {
+                labels: format(snapshot.date),
+                datasets: [{
+                    label: 'Profit in USDT',
+                    data: snapshot.profitInUSDT,
+                    backgroundColor: '#21a27c',
+                    borderColor: '#21a27c',
+                    fill: false,
+                    pointRadius: 0,
+                    lineTension: 0,
+                    // pointHoverRadius: 15,
+                    showLine: true // no line shown
+                }
+                ,{
+                    label: 'Profit in BTC',
+                    data: snapshot.profitInBTC,
+                    backgroundColor: '#f79413',
+                    borderColor: '#f79413',
+                    fill: false,
+                    pointRadius: 0,
+                    lineTension: 0,
+                    // pointHoverRadius: 15,
+                    showLine: true // no line shown
+                }]
+            },
+            options: {
+                plugins: {
+                    zoom: {
+                        // Container for pan options
+                        pan: {
+                            // Boolean to enable panning
+                            enabled: true,
+
+                            // Panning directions. Remove the appropriate direction to disable
+                            // Eg. 'y' would only allow panning in the y direction
+                            mode: 'xy'
+                        },
+
+                        // Container for zoom options
+                        zoom: {
+                            // Boolean to enable zooming
+                            enabled: true,
+
+                            // Zooming directions. Remove the appropriate direction to disable
+                            // Eg. 'y' would only allow zooming in the y direction
+                            mode: 'xy',
+                        }
+                    }
+                },
+                elements: {
+                    line: {
+                        tension: 0 // disables bezier curves
+                    }
+                },
+                responsive: true,
+                title: {
+                    display: true,
+                    text: snapshot.name
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            return Chart.defaults.global.tooltips.callbacks.label(tooltipItem, data) + '%';
+                        }
+                    },
+                    mode: 'index',
+                    intersect: false,
+                },
+                hover: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            parser: timeFormat,
+                            distribution: 'series',
+                            // displayFormats: {
+                            //     quarter: 'MMM YYYY'
+                            // }
+                            tooltipFormat: 'll HH:mm'
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: snapshot.description
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        type: 'linear',
+                        ticks: {
+                            callback: function(tick) {
+                                return tick.toString() + '%';
+                            }
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Profit'
+                        }
+                    }]
+                },
+                // legend: {
+                //     display: true
+                // },
+                // elements: {
+                //     point: {
+                //         pointStyle: name.name
+                //     }
+                // }
+             },
+        };
+    }
+
+    window.onload = function() {
+        var container = document.querySelector('.container');
+        [[${list}]].forEach(function(snapshot) {
+            var div = document.createElement('div');
+            div.classList.add('chart-container');
+
+            var canvas = document.createElement('canvas');
+            div.appendChild(canvas);
+            container.appendChild(div);
+
+            var ctx = canvas.getContext('2d');
+            var config = createConfig(snapshot);
+            new Chart(ctx, config);
+        });
+    };
+</script>
+
+
+</body>
+</html>

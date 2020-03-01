@@ -1,7 +1,6 @@
 package net.puzatin.tradetrack.controller;
 
-import com.binance.api.client.BinanceApiClientFactory;
-import com.binance.api.client.BinanceApiRestClient;
+
 import net.puzatin.tradetrack.model.ChartData;
 import net.puzatin.tradetrack.model.Snapshot;
 import net.puzatin.tradetrack.model.Tracker;
@@ -10,15 +9,13 @@ import net.puzatin.tradetrack.service.TrackerService;
 import net.puzatin.tradetrack.util.TrackerValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 @Controller
@@ -71,6 +68,19 @@ public class HomeController {
             tracker = trackerService.findByisPublicTrueAndName(name);
         }
 
+
+//        List<List> data = new ArrayList<>();
+//
+//        List<Snapshot> snapshotList = snapshotService.findByPubKey(tracker.getPubKey());
+//        snapshotList.forEach(snapshot -> {
+//            List<Double> time = new ArrayList<>();
+//            time.add((double) snapshot.getTimestamp());
+//            time.add(snapshot.getProfitInUSDT());
+//            data.add(time);
+//
+//        });
+
+
         if(tracker != null){
             model.addAttribute("snapshot", snapshotService.fillChartData(tracker));
         }
@@ -79,6 +89,7 @@ public class HomeController {
 
 
     @PostMapping("/")
+    @Transactional
     public String addTracker(@Valid @ModelAttribute Tracker tracker, BindingResult result){
 
         trackerValidator.validate(tracker, result);
