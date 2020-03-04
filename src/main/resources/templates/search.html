@@ -4,31 +4,136 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <script src="https://code.highcharts.com/stock/highstock.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <style>
         .highcharts-caption {
             font-weight: 500;
             font-size: 14px;
         }
-
     </style>
 </head>
 <body>
 
 
         <div th:if="${tracker?.pubKey}">
-            <a th:href="@{/tracker/{pubKey}/edit
-        (pubKey=${tracker.pubKey})
-        }">Edit</a>
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editModal">
+                Edit tracker
+            </button>
 
-            <a th:href="@{/tracker/{pubKey}/delete
+
+            <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Add tracker</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form class="form-horizontal" th:action="@{/update}" method="post" th:object="${tracker}">
+                                <div class="form-group">
+                                    <label for="name">Name:</label>
+                                    <input id="name" type="text" class="form-control" th:field="*{name}" placeholder="2 to 20 characters without spaces" aria-describedby="helpName" required/>
+                                    <span id="helpName" class="text-muted">characters allowed _-@.</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="description">Description:</label>
+                                    <textarea maxlength="140" id="description" class="form-control" th:field="*{description}" placeholder="max 140 characters"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="public" >Public:</label>
+                                    <input type="checkbox" id="public" th:field="*{public}"/>
+                                </div>
+                                    <input type="hidden" id="pubKey" th:field="*{pubKey}">
+                                <div id="generalErrorMessage" class="error-lbl" style="display:none;"></div>
+                                <button class="btn btn-primary float-right" id="editTrack" type="submit">Edit</button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+
+
+            <a class="btn btn-primary" th:href="@{/tracker/{pubKey}/edit
+        (pubKey=${tracker.pubKey})
+        }" role="button">Edit</a>
+
+            <a class="btn btn-danger" th:href="@{/tracker/{pubKey}/delete
         (pubKey=${tracker.pubKey})
         }" onclick="return confirm('Are you sure?')">Delete</a>
         </div>
 
 
-<div id="container" style="width:80%; height:600px;"></div>
+<div id="chart" style="width:100%; height:650px;"></div>
 <script th:inline="javascript">
+
+    $(document).ready(function() {
+
+        clearError();
+
+        $('#editTrack').click(function(event) {
+
+            event.preventDefault();
+            let name = $("#name").val();
+            let description = $("#description").val();
+            let pubKey = $("#pubKey").val();
+            let isPublic = $("#public").val();
+            $.ajax({
+                type : "POST",
+                url : "/update",
+                data : "name=" + name + "&description=" + description
+                        + "&pubKey=" + pubKey + "&isPublic=" + isPublic,
+                success : function(response) {
+                    if(response.status == 'FAIL') {
+                        showFormError(response.errorMessageList);
+                    } else {
+                        //everything is O.K. user logged in successfully.
+                        $('#editModal').modal('hide');
+                        window.location.reload();
+                    }
+                },
+                error : function(ex) {
+                    console.log(ex);
+                }
+            });
+        });
+
+        let nameField = $('#name');
+        let generalErrorField = $('#generalErrorMessage');
+        function showFormError(errorVal) {
+            //show error messages that coming from backend and change border to red.
+            for(let i=0; i < errorVal.length; i++) {
+                if(errorVal[i].fieldName === 'name') {
+                    nameField.val('');
+                    nameField.attr("placeholder", errorVal[i].message).css("border", " 1px solid red");
+                }
+
+            }
+        }
+        //remove error warning tags and change tips
+        function clearError() {
+            //clear all and return it as default.
+
+            $('#name').focus(function() {
+                nameField.css("border", "1px solid lightgrey");
+            });
+        }
+        //clear fields and hide error tag.
+        function clearForm() {
+            nameField.val('');
+            pubKeyField.val('');
+            generalErrorField.css("display", "none");
+        }
+
+    });
 
 
         // Create the chart
@@ -40,7 +145,7 @@
         profitInUSDT = profitInUSDT.map((val, i) => [xAxisDate[i], val])
         profitInBTC = profitInBTC.map((val, i) => [xAxisDate[i], val])
 
-        Highcharts.stockChart('container', {
+        Highcharts.stockChart('chart', {
             title: {
                 text: [[${snapshot.name}]]
             },

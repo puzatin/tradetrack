@@ -4,10 +4,19 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Statistics of your trade</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
     <script src="https://code.highcharts.com/stock/highstock.js"></script>
-<!--    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+</script>
     <style>
         .highcharts-caption {
 
@@ -25,6 +34,7 @@
 
         .chart {
             width: 80%;
+            height:600px;
             margin-left: 40px;
             margin-right: 40px;
             margin-bottom: 40px;
@@ -33,46 +43,69 @@
     </style>
 </head>
 <body>
-Add tracking
-<!--/*@thymesVar id="tracker" type="net.puzatin.tradetrack.model.Tracker"*/-->
-<form th:action="@{/}" method="post" th:object="${tracker}">
-    <table>
-        <tr>
-            <td>Name:</td>
-            <td><input type="text" th:field="*{name}" /></td>
-            <td th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name Error</td>
-        </tr>
-        <tr>
-            <td>Public key:</td>
-            <td><input type="text" th:field="*{pubKey}" /></td>
-            <td th:if="${#fields.hasErrors('pubKey')}" th:errors="*{pubKey}">Public key Error</td>
-        </tr>
-        <tr>
-            <td>Secret key:</td>
-            <td><input type="password" th:field="*{secKey}" /></td>
-            <td th:if="${#fields.hasErrors('secKey')}" th:errors="*{secKey}">Secret key Error</td>
-        </tr>
-        <tr>
-            <td>Description:</td>
-            <td><textarea maxlength="140" th:field="*{description}"></textarea></td>
-            <td th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description Error</td>
-        </tr>
-        <tr>
-            <td>Public:</td>
-            <td><input type="checkbox" th:field="*{public}" /></td>
-        </tr>
-        <tr>
-            <td><button type="submit">Submit</button></td>
-        </tr>
-    </table>
-</form>
 
 
-Search
-<form name="search" method="get" onsubmit="return OnSubmitForm();">
-    <input type="text" id="trackerName" />
-    <input type="submit" value="Search"/>
-</form>
+
+<!--Navbar-->
+<nav class="navbar navbar-light bg-light">
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+            Add tracker
+        </button>
+
+        <form name="search" onsubmit="return OnSubmitForm();" class="form-inline" method="get" >
+            <input class="form-control" type="text" id="trackerName" placeholder="name or public key">
+            <button class="btn btn-primary" type="submit">Search</button>
+        </form>
+</nav>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Add tracker</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!--/*@thymesVar id="tracker" type="net.puzatin.tradetrack.model.Tracker"*/-->
+                <form class="form-horizontal" th:action="@{/}" method="post" th:object="${tracker}">
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        <input id="name" type="text" class="form-control" th:field="*{name}" placeholder="2 to 20 characters without spaces" aria-describedby="helpName" required/>
+                        <span id="helpName" class="text-muted">characters allowed _-@.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="pubKey">Public key:</label>
+                        <input id="pubKey" type="text" class="form-control" th:field="*{pubKey}" placeholder="binance only" aria-describedby="helpKey" required/></td>
+                        <span id="helpKey" class="text-muted">make sure permissions are read-only!</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="secKey">Secret key:</label>
+                        <input id="secKey" type="password" class="form-control" th:field="*{secKey}" placeholder="binance only" required/>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea maxlength="140" id="description" class="form-control" th:field="*{description}" placeholder="max 140 characters"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="public" >Public:</label>
+                        <input type="checkbox" id="public" th:field="*{public}" data-toggle="tooltip" data-placement="top" title="Public trackers can be found by name and they can also get to the top on the main page, private can be found only by public key"  />
+                    </div>
+                    <div id="generalErrorMessage" class="error-lbl" style="display:none;"></div>
+
+                    <button class="btn btn-primary float-right" id="addTrack" type="submit"><span class="spinner-grow spinner-grow-sm d-none" role="status" aria-hidden="true"></span>Add</button>
+                </form>
+
+
+            </div>
+
+        </div>
+    </div>
+</div>
 
 
 <div class="chart-container">
@@ -81,6 +114,7 @@ Search
 
 <script th:inline="javascript">
 
+
     function OnSubmitForm()
     {
         var trackerName = document.getElementById("trackerName").value;
@@ -88,6 +122,96 @@ Search
         return true;
     }
 
+
+
+    $(document).ready(function() {
+
+        clearError();
+
+        $('#addTrack').click(function(event) {
+            event.preventDefault();
+            let _this = $(this);
+            let name = $("#name").val();
+            let pubKey = $("#pubKey").val();
+            let secKey = $("#secKey").val();
+            let description = $("#description").val();
+            let isPublic = $("#public").val();
+
+
+            $.ajax({
+
+                type : "POST",
+                url : "/",
+                data : "name=" + name + "&pubKey=" + pubKey + "&secKey=" + secKey
+                        + "&description=" + description + "&isPublic=" + isPublic,
+                beforeSend: function () {
+                    _this
+                        .prop('disabled', true)
+                        .find('.spinner-grow').removeClass('d-none');
+                },
+                success : function(response) {
+                    _this
+                        .prop('disabled', false)
+                        .find('.spinner-grow').addClass('d-none');
+                    if(response.status == 'FAIL') {
+                        showFormError(response.errorMessageList);
+                    } else {
+                        //everything is O.K. user logged in successfully.
+                        $('#exampleModal').modal('hide');
+                        window.location.reload();
+                    }
+                },
+                error : function(ex) {
+                    console.log(ex);
+                }
+            });
+        });
+
+        let nameField = $('#name');
+        let pubKeyField = $('#pubKey');
+        let secKeyField = $('#secKey');
+        let generalErrorField = $('#generalErrorMessage');
+        function showFormError(errorVal) {
+
+            //show error messages that coming from backend and change border to red.
+            for(let i=0; i < errorVal.length; i++) {
+                if(errorVal[i].fieldName === 'name') {
+                    nameField.val('');
+                    nameField.attr("placeholder", errorVal[i].message).css("border", " 1px solid red");
+                }
+
+                else if(errorVal[i].fieldName === 'pubKey'){
+                    pubKeyField.val('');
+                    pubKeyField.attr("placeholder", errorVal[i].message).css("border", " 1px solid red");
+                }
+                else if(errorVal[i].fieldName === 'secKey'){
+                    secKeyField.val('');
+                    secKeyField.attr("placeholder", errorVal[i].message).css("border", " 1px solid red");
+                }
+            }
+        }
+        //remove error warning tags and change tips
+        function clearError() {
+            //clear all and return it as default.
+
+            $('#name').focus(function() {
+                nameField.css("border", "1px solid lightgrey");
+            });
+            $('#pubKey').focus(function() {
+                pubKeyField.css("border", "1px solid lightgrey");
+            });
+            $('#secKey').focus(function() {
+                secKeyField.css("border", "1px solid lightgrey");
+            });
+        }
+        //clear fields and hide error tag.
+        function clearForm() {
+            nameField.val('');
+            pubKeyField.val('');
+            generalErrorField.css("display", "none");
+        }
+
+    });
 
 
     function createConfig(snapshot) {
@@ -129,7 +253,7 @@ Search
                 enabled: false
             },
             yAxis: {
-                opposite:false,
+                opposite:true,
                 labels: {
                     formatter: function () {
                         return (this.value > 0 ? ' + ' : '') + this.value + '%';

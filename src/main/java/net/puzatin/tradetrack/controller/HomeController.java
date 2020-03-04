@@ -6,12 +6,15 @@ import net.puzatin.tradetrack.model.Snapshot;
 import net.puzatin.tradetrack.model.Tracker;
 import net.puzatin.tradetrack.service.SnapshotService;
 import net.puzatin.tradetrack.service.TrackerService;
+import net.puzatin.tradetrack.util.ErrorMessage;
 import net.puzatin.tradetrack.util.TrackerValidator;
+import net.puzatin.tradetrack.util.ValidationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -69,18 +72,6 @@ public class HomeController {
         }
 
 
-//        List<List> data = new ArrayList<>();
-//
-//        List<Snapshot> snapshotList = snapshotService.findByPubKey(tracker.getPubKey());
-//        snapshotList.forEach(snapshot -> {
-//            List<Double> time = new ArrayList<>();
-//            time.add((double) snapshot.getTimestamp());
-//            time.add(snapshot.getProfitInUSDT());
-//            data.add(time);
-//
-//        });
-
-
         if(tracker != null){
             model.addAttribute("snapshot", snapshotService.fillChartData(tracker));
         }
@@ -90,22 +81,32 @@ public class HomeController {
 
     @PostMapping("/")
     @Transactional
-    public String addTracker(@Valid @ModelAttribute Tracker tracker, BindingResult result){
+    public @ResponseBody ValidationResponse addTracker(@Valid @ModelAttribute Tracker tracker, BindingResult result){
 
+        ValidationResponse res = new ValidationResponse();
         trackerValidator.validate(tracker, result);
 
         if(result.hasErrors()) {
-            return "home";
+            res.setStatus("FAIL");
+            List<FieldError> allErrors = result.getFieldErrors();
+            final List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
+            for (FieldError objectError : allErrors) {
+                errorMessages.add(new ErrorMessage(objectError.getField(), objectError.getDefaultMessage()));
+            }
+            res.setErrorMessageList(errorMessages);
+        } else {
+            trackerService.add(tracker);
+            snapshotService.firstSnapshot(tracker);
         }
 
-        trackerService.add(tracker);
-        snapshotService.firstSnapshot(tracker);
-            return "redirect:/";
+            return res;
     }
 
     @PostMapping("/update")
-    public String updateTracker(@Valid @ModelAttribute Tracker tracker, BindingResult result){
+    public @ResponseBody ValidationResponse update(@Valid @ModelAttribute Tracker tracker, BindingResult result){
 
+
+        ValidationResponse res = new ValidationResponse();
         String oldName = trackerService.findByPubKey(tracker.getPubKey()).getName();
 
         if (!oldName.equals(tracker.getName())) {
@@ -113,10 +114,19 @@ public class HomeController {
         }
 
         if(result.hasErrors()) {
-            return "edit-tracker";
+            res.setStatus("FAIL");
+            List<FieldError> allErrors = result.getFieldErrors();
+            final List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
+            for (FieldError objectError : allErrors) {
+                errorMessages.add(new ErrorMessage(objectError.getField(), objectError.getDefaultMessage()));
+            }
+            res.setErrorMessageList(errorMessages);
+        } else {
+            System.out.println(tracker.isPublic());
+            trackerService.update(tracker);
         }
-        trackerService.update(tracker);
-        return "redirect:/tracker/" + tracker.getPubKey();
+
+        return res;
 
     }
 

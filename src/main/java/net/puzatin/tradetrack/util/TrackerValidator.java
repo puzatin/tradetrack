@@ -40,6 +40,7 @@ public class TrackerValidator implements Validator {
 
         if(trackerService.findByPubKey(tracker.getPubKey()) != null){
             errors.rejectValue("pubKey","","tracker already exists");
+            errors.rejectValue("secKey","","tracker already exists");
         }
 
         try {
@@ -48,6 +49,7 @@ public class TrackerValidator implements Validator {
             client.getAccount().getBuyerCommission();
         } catch (BinanceApiException e) {
                 errors.rejectValue("pubKey", "", e.getMessage());
+                errors.rejectValue("secKey", "", e.getMessage());
         }
 
     }
