@@ -41,6 +41,11 @@ public class SnapshotServiceImpl implements SnapshotService {
     }
 
     @Override
+    public Snapshot getLastSnapshot(Tracker tracker) {
+        return snapshotRepository.findTopByTrackerOrderByTimestampDesc(tracker);
+    }
+
+    @Override
     public Double getFirstBalanceInUSDT(String pubKey) {
         return snapshotRepository.getFirstBalanceUSDT(pubKey);
     }
@@ -125,8 +130,8 @@ public class SnapshotServiceImpl implements SnapshotService {
 
                 if (balanceInBTC != -1) {
                     double balanceInUSDT = DoubleRounder.round(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC), 2);
-                    double profitInUSDT = DoubleRounder.round((balanceInUSDT - (getSumDeltaDepInUSDT(pub) + deltaDepositInUSDT)) / firstBalanceInUSDT * 100 - 100, 2);
-                    double profitInBTC = DoubleRounder.round((balanceInBTC - (getSumDeltaDepInBTC(pub) + deltaDepositInBTC)) / firstBalanceInBTC * 100 - 100, 2);
+                    double profitInUSDT = DoubleRounder.round(balanceInUSDT / ((getSumDeltaDepInUSDT(pub) + deltaDepositInUSDT) + firstBalanceInUSDT) * 100 - 100, 2);
+                    double profitInBTC = DoubleRounder.round(balanceInBTC / ((getSumDeltaDepInBTC(pub) + deltaDepositInBTC) + firstBalanceInBTC) * 100 - 100, 2);
                     balanceInBTC = DoubleRounder.round(balanceInBTC, 8);
 
 

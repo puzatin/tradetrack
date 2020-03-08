@@ -71,6 +71,9 @@
                 </button>
             </div>
             <div class="modal-body">
+                <ul id="err">
+
+                </ul>
                 <!--/*@thymesVar id="tracker" type="net.puzatin.tradetrack.model.Tracker"*/-->
                 <form class="form-horizontal" th:action="@{/}" method="post" th:object="${tracker}">
                     <div class="form-group">
@@ -96,7 +99,6 @@
                         <input type="checkbox" id="public" th:field="*{public}" data-toggle="tooltip" data-placement="top" title="Public trackers can be found by name and they can also get to the top on the main page, private can be found only by public key"  />
                     </div>
                     <div id="generalErrorMessage" class="error-lbl" style="display:none;"></div>
-
                     <button class="btn btn-primary float-right" id="addTrack" type="submit"><span class="spinner-grow spinner-grow-sm d-none" role="status" aria-hidden="true"></span>Add</button>
                 </form>
 
@@ -135,7 +137,8 @@
             let pubKey = $("#pubKey").val();
             let secKey = $("#secKey").val();
             let description = $("#description").val();
-            let isPublic = $("#public").val();
+            let public = $("#public").prop('checked');
+
 
 
             $.ajax({
@@ -143,7 +146,7 @@
                 type : "POST",
                 url : "/",
                 data : "name=" + name + "&pubKey=" + pubKey + "&secKey=" + secKey
-                        + "&description=" + description + "&isPublic=" + isPublic,
+                        + "&description=" + description + "&public=" + public,
                 beforeSend: function () {
                     _this
                         .prop('disabled', true)
@@ -172,27 +175,28 @@
         let secKeyField = $('#secKey');
         let generalErrorField = $('#generalErrorMessage');
         function showFormError(errorVal) {
-
+            $("#err").empty();
             //show error messages that coming from backend and change border to red.
             for(let i=0; i < errorVal.length; i++) {
+                $("#err").append('<li>' + errorVal[i].message + '</li>').css("color", "red");
                 if(errorVal[i].fieldName === 'name') {
                     nameField.val('');
-                    nameField.attr("placeholder", errorVal[i].message).css("border", " 1px solid red");
+                    nameField.css("border", " 1px solid red");
                 }
 
                 else if(errorVal[i].fieldName === 'pubKey'){
                     pubKeyField.val('');
                     pubKeyField.attr("placeholder", errorVal[i].message).css("border", " 1px solid red");
-                }
-                else if(errorVal[i].fieldName === 'secKey'){
-                    secKeyField.val('');
                     secKeyField.attr("placeholder", errorVal[i].message).css("border", " 1px solid red");
                 }
+
             }
         }
         //remove error warning tags and change tips
         function clearError() {
             //clear all and return it as default.
+
+
 
             $('#name').focus(function() {
                 nameField.css("border", "1px solid lightgrey");

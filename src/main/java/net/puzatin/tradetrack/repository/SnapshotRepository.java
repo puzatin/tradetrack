@@ -1,6 +1,7 @@
 package net.puzatin.tradetrack.repository;
 
 import net.puzatin.tradetrack.model.Snapshot;
+import net.puzatin.tradetrack.model.Tracker;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -22,6 +23,8 @@ public interface SnapshotRepository extends JpaRepository<Snapshot, Long> {
 
     @Query(value = "SELECT balance_btc FROM tracker_snapshots WHERE own_pub_key=? ORDER BY timestamp LIMIT 1", nativeQuery = true)
     Double getFirstBalanceBTC(String pubKey);
+
+    Snapshot findTopByTrackerOrderByTimestampDesc(Tracker tracker);
 
     @Query(value = "SELECT SUM(delta_deposit_usdt) FROM tracker_snapshots WHERE own_pub_key=?", nativeQuery = true)
     Double getSumDeltaDepInUSDT(String pubKey);

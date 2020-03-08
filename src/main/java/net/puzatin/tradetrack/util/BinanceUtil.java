@@ -50,12 +50,11 @@ public final class BinanceUtil {
 
 
     public static double getBTCprice() {
-        System.out.println("getBTCprice");
         return Double.parseDouble(client.getPrice("BTCUSDT").getPrice());
     }
 
 
-    public static double getTotalAccountBalanceInBTC(String pubKey, String secKey, HashMap<String, String> prices, double BTCprice, boolean first){
+    public static double getTotalAccountBalanceInBTC(String pubKey, String secKey, HashMap<String, String> prices, double BTCprice, boolean first) {
        double spotBalance;
        if(first){
             spotBalance = getTotalSpotBalanceFirst(pubKey, secKey, prices);
@@ -102,7 +101,7 @@ public final class BinanceUtil {
            }
            return totalAccountBalance;
        } catch (BinanceApiException e) {
-            e.printStackTrace();
+
            return -1;
        }
 

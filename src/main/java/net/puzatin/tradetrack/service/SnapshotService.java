@@ -13,6 +13,8 @@ public interface SnapshotService {
 
     Long getLastTimestamp(String pubKey);
 
+    Snapshot getLastSnapshot(Tracker tracker);
+
     Double getFirstBalanceInUSDT(String pubKey);
 
     Double getFirstBalanceInBTC(String pubKey);

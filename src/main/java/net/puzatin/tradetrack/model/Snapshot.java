@@ -3,7 +3,6 @@ package net.puzatin.tradetrack.model;
 
 
 import javax.persistence.*;
-import javax.validation.constraints.Size;
 
 
 @Entity

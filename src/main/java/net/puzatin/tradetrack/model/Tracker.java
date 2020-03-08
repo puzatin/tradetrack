@@ -21,7 +21,7 @@ public class Tracker {
     @Size(max = 64)
     private String secKey;
 
-    @Pattern(message = "characters allowed _-@.", regexp = "^[\\w-@.]+$")
+    @Pattern(message = "characters in name allowed _-@.", regexp = "^[\\w-@.]+$")
     @NotBlank(message = "name must not be empty!")
     @Size(min = 2, max = 20, message = "name must be between 2 and 20 characters!")
     @Column(name = "name")
@@ -84,8 +84,8 @@ public class Tracker {
         return isPublic;
     }
 
-    public void setPublic(boolean aPublic) {
-        isPublic = aPublic;
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 
     public String getName() {

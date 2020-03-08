@@ -2,7 +2,6 @@ package net.puzatin.tradetrack.controller;
 
 
 import net.puzatin.tradetrack.model.ChartData;
-import net.puzatin.tradetrack.model.Snapshot;
 import net.puzatin.tradetrack.model.Tracker;
 import net.puzatin.tradetrack.service.SnapshotService;
 import net.puzatin.tradetrack.service.TrackerService;
@@ -41,10 +40,24 @@ public class HomeController {
     public String home(Model model){
         model.addAttribute("tracker", new Tracker());
         List<Tracker> trackerList = trackerService.getAllPublicAndSnapshotMore24();
+        Map<Tracker, Double> map = new HashMap<>();
         List<ChartData> listChartData = new ArrayList<>();
         trackerList.forEach(tracker -> {
-            listChartData.add(snapshotService.fillChartData(tracker));
+
+            Double lastBalanceBTC = snapshotService.getLastSnapshot(tracker).getBalanceInBTC();
+            Double firstBalanceBTC = snapshotService.getFirstBalanceInBTC(tracker.getPubKey());
+            Double sumDeltaBTC = snapshotService.getSumDeltaDepInBTC(tracker.getPubKey());
+            Double profitForTop = lastBalanceBTC / (firstBalanceBTC + sumDeltaBTC) * 100 - 100;
+            map.put(tracker, profitForTop);
+
         });
+
+        map.entrySet().stream()
+                .sorted(Map.Entry.<Tracker, Double>comparingByValue().reversed()).limit(10)
+                .forEach(entryMap -> {
+                    listChartData.add(snapshotService.fillChartData(entryMap.getKey()));
+                });
+
         model.addAttribute("list", listChartData);
 
         return "home";
@@ -74,8 +87,9 @@ public class HomeController {
 
         if(tracker != null){
             model.addAttribute("snapshot", snapshotService.fillChartData(tracker));
-        }
-        return "search";
+            return "search";
+        } else return "error";
+
     }
 
 
@@ -89,6 +103,7 @@ public class HomeController {
         if(result.hasErrors()) {
             res.setStatus("FAIL");
             List<FieldError> allErrors = result.getFieldErrors();
+
             final List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
             for (FieldError objectError : allErrors) {
                 errorMessages.add(new ErrorMessage(objectError.getField(), objectError.getDefaultMessage()));
@@ -122,7 +137,6 @@ public class HomeController {
             }
             res.setErrorMessageList(errorMessages);
         } else {
-            System.out.println(tracker.isPublic());
             trackerService.update(tracker);
         }
 

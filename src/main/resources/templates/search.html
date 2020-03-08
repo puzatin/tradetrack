@@ -19,7 +19,7 @@
 </head>
 <body>
 
-
+<!--/*@thymesVar id="tracker" type="net.puzatin.tradetrack.model.Tracker"*/-->
         <div th:if="${tracker?.pubKey}">
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editModal">
                 Edit tracker
@@ -60,12 +60,6 @@
                 </div>
             </div>
 
-
-
-            <a class="btn btn-primary" th:href="@{/tracker/{pubKey}/edit
-        (pubKey=${tracker.pubKey})
-        }" role="button">Edit</a>
-
             <a class="btn btn-danger" th:href="@{/tracker/{pubKey}/delete
         (pubKey=${tracker.pubKey})
         }" onclick="return confirm('Are you sure?')">Delete</a>
@@ -82,15 +76,15 @@
         $('#editTrack').click(function(event) {
 
             event.preventDefault();
-            let name = $("#name").val();
-            let description = $("#description").val();
-            let pubKey = $("#pubKey").val();
-            let isPublic = $("#public").val();
+            let name = $('#name').val();
+            let description = $('#description').val();
+            let pubKey = $('#pubKey').val();
+            let public = $('#public').prop('checked');
             $.ajax({
                 type : "POST",
                 url : "/update",
                 data : "name=" + name + "&description=" + description
-                        + "&pubKey=" + pubKey + "&isPublic=" + isPublic,
+                        + "&pubKey=" + pubKey + "&public=" + public,
                 success : function(response) {
                     if(response.status == 'FAIL') {
                         showFormError(response.errorMessageList);
@@ -135,11 +129,12 @@
 
     });
 
+        let snapshot = [[${snapshot}]];
 
         // Create the chart
-        let profitInUSDT = [[${snapshot.profitInUSDT}]],
-            profitInBTC = [[${snapshot.profitInBTC}]],
-            xAxisDate = [[${snapshot.date}]];
+        let profitInUSDT = snapshot.profitInUSDT,
+            profitInBTC = snapshot.profitInBTC,
+            xAxisDate = snapshot.date;
 
 
         profitInUSDT = profitInUSDT.map((val, i) => [xAxisDate[i], val])
@@ -147,7 +142,7 @@
 
         Highcharts.stockChart('chart', {
             title: {
-                text: [[${snapshot.name}]]
+                text: snapshot.name
             },
 
             caption: {
@@ -155,7 +150,7 @@
                 useHTML: false,
                 align: 'center',
                 y: 0,
-                text:  [[${snapshot.description}]]
+                text:  snapshot.description
             },
 
             yAxis: {

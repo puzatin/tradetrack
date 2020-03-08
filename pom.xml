@@ -21,7 +21,7 @@
 
 	<profiles>
 		<profile>
-		<id>development</id>
+		<id>develop</id>
 		<dependencies>
 			<dependency>
 				<groupId>mysql</groupId>
@@ -35,7 +35,7 @@
 		</dependencies>
 		</profile>
 		<profile>
-		<id>productionServer</id>
+		<id>prodServer</id>
 		<dependencies>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
@@ -51,9 +51,8 @@
 	</profile>
 	</profiles>
 
-	<activeProfiles>
-		<activeProfile>development</activeProfile>
-	</activeProfiles>
+
+
 
 
 
