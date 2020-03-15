@@ -17,7 +17,7 @@ public final class BinanceUtil {
     private BinanceUtil(){
     }
 
-    public static final List<String> CRYPTOFIAT_CURRENCY = Collections.unmodifiableList(Arrays.asList("USDT", "BUSD", "PAX", "TUSD", "USDC", "USDS"));
+    public static final List<String> CRYPTOFIAT_CURRENCY = Collections.unmodifiableList(Arrays.asList("USDT", "BUSD", "PAX", "TUSD", "USDC", "NGN", "RUB", "USDS", "TRY", "EUR"));
 
     private static BinanceApiRestClient client;
 
@@ -85,13 +85,14 @@ public final class BinanceUtil {
 
            double totalAccountBalance = 0;
            for (AssetBalance asset : balances) {
+               String symbol = asset.getAsset();
                double amount = Double.parseDouble(asset.getFree()) + Double.parseDouble(asset.getLocked());
-               if (!asset.getAsset().equals(Util.BTC_TICKER)) {
-                   if (Util.isFiatCurrency(asset.getAsset())) {
-                           double price = Double.parseDouble(prices.get(Util.BTC_TICKER + asset.getAsset()));
+               if (!symbol.equals(Util.BTC_TICKER)) {
+                   if (Util.isFiatCurrency(symbol)) {
+                           double price = Double.parseDouble(prices.get(Util.BTC_TICKER + symbol));
                            totalAccountBalance += amount / price;
                    } else {
-                       double price = Double.parseDouble(prices.get(asset.getAsset() + Util.BTC_TICKER));
+                       double price = Double.parseDouble(prices.get(symbol + Util.BTC_TICKER));
                        totalAccountBalance += amount * price;
                    }
 
@@ -117,13 +118,14 @@ public final class BinanceUtil {
 
             double totalAccountBalance = 0;
             for (AssetBalance asset : balances) {
+                String symbol = asset.getAsset();
                 double amount = Double.parseDouble(asset.getFree()) + Double.parseDouble(asset.getLocked());
-                if (!asset.getAsset().equals(Util.BTC_TICKER)) {
-                    if (BinanceUtil.isCryptoFiatCurrency(asset.getAsset())) {
-                        double price = Double.parseDouble(prices.get(Util.BTC_TICKER + asset.getAsset()));
+                if (!symbol.equals(Util.BTC_TICKER)) {
+                    if (BinanceUtil.isCryptoFiatCurrency(symbol)) {
+                        double price = Double.parseDouble(prices.get(Util.BTC_TICKER + symbol));
                         totalAccountBalance += amount / price;
                     } else {
-                        double price = Double.parseDouble(prices.get(asset.getAsset() + Util.BTC_TICKER));
+                        double price = Double.parseDouble(prices.get(symbol + Util.BTC_TICKER));
                         totalAccountBalance += amount * price;
                     }
 

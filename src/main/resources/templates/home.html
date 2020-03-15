@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <title>Statistics of your trade</title>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
     <script src="https://code.highcharts.com/stock/highstock.js"></script>
@@ -35,6 +36,14 @@
         .chart {
             width: 80%;
             height:600px;
+            margin-left: 40px;
+            margin-right: 40px;
+            margin-bottom: 40px;
+        }
+
+        .contact {
+            text-align: right;
+            float: right;
             margin-left: 40px;
             margin-right: 40px;
             margin-bottom: 40px;
@@ -109,9 +118,20 @@
     </div>
 </div>
 
+<section class="text-center">
+    <h5>Top 10 trackers:</h5>
+</section>
 
 <div class="chart-container">
 </div>
+
+<div class="contact">
+    Contact: <a href="https://t.me/tradestats" > <i class="fa fa-telegram" style="font-size:36px;color:#0088cc"></i></a>
+
+</div>
+
+
+
 
 
 <script th:inline="javascript">
