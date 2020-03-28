@@ -17,13 +17,12 @@ public final class BinanceUtil {
     private BinanceUtil(){
     }
 
-    public static final List<String> CRYPTOFIAT_CURRENCY = Collections.unmodifiableList(Arrays.asList("USDT", "BUSD", "PAX", "TUSD", "USDC", "NGN", "RUB", "USDS", "TRY", "EUR"));
+    public static final List<String> CRYPTOFIAT_CURRENCY = Collections.unmodifiableList(Arrays.asList("USDT", "BUSD", "PAX", "TUSD", "USDC", "NGN", "RUB", "USDS", "TRY", "EUR", "ZAR"));
 
     private static BinanceApiRestClient client;
 
    static  {
        try {
-           System.out.println("static block");
            client = BinanceApiClientFactory.newInstance().newRestClient();
        } catch (BinanceApiException e) {
            e.printStackTrace();
@@ -54,6 +53,11 @@ public final class BinanceUtil {
     }
 
 
+    public static void checkValidAPI(String pubKey, String secKey) throws BinanceApiException {
+        BinanceApiRestClient client = BinanceApiClientFactory.newInstance(pubKey, secKey).newRestClient();
+        client.getAccount().getAccountType();
+    }
+
     public static double getTotalAccountBalanceInBTC(String pubKey, String secKey, HashMap<String, String> prices, double BTCprice, boolean first) {
        double spotBalance;
        if(first){
@@ -64,7 +68,7 @@ public final class BinanceUtil {
        if(spotBalance != -1) {
            return  spotBalance +
                    getTotalMarginBalance(pubKey, secKey) +
-                   getTotalFuturesBalance(pubKey, secKey, BTCprice) +
+                   (getTotalFuturesBalance(pubKey, secKey) / BTCprice) +
                    getTotalLendingBalance(pubKey, secKey);
        } else return -1;
 
@@ -146,7 +150,6 @@ public final class BinanceUtil {
 
 
     public static HashMap<String, String> getPrices() {
-        System.out.println("getprices");
         HashMap<String, String> prices = new HashMap<>();
         for (TickerPrice tickerPrice : client.getAllPrices()) {
             prices.put(tickerPrice.getSymbol(), tickerPrice.getPrice());
@@ -165,10 +168,10 @@ public final class BinanceUtil {
         }
     }
 
-    public static double getTotalFuturesBalance(String pubKey, String secKey, double BTCprice) {
+    public static double getTotalFuturesBalance(String pubKey, String secKey) {
         try {
             BinanceApiFuturesRestClient client = BinanceApiClientFactory.newInstance(pubKey, secKey).newFuturesRestClient();
-            return Double.parseDouble(client.getFuturesAccount().getTotalWalletBalance()) / BTCprice;
+            return Double.parseDouble(client.getFuturesAccount().getTotalWalletBalance());
         } catch (BinanceApiException e) {
             return 0;
         }
@@ -191,6 +194,23 @@ public final class BinanceUtil {
 
     public static double getDeltaDepositInUSDT(double BTCprice, double amount) {
        return BTCprice * amount;
+    }
+
+    public static double getDeltaDepositFuturesInUSDT(String pubKey, String secKey, Long startTime) {
+        try {
+            BinanceApiFuturesRestClient client = BinanceApiClientFactory.newInstance(pubKey, secKey).newFuturesRestClient();
+            final double[] delta = {0};
+            client.getIncome("TRANSFER", startTime).forEach(futuresIncome -> {
+                if(futuresIncome.getAsset().equals("USDT")){
+                   delta[0] = delta[0] + Double.parseDouble(futuresIncome.getIncome());
+                }
+            });
+            return delta[0];
+        } catch (BinanceApiException e) {
+            e.getMessage();
+            return 0;
+        }
+
     }
 
 

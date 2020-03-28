@@ -1,5 +1,6 @@
 package net.puzatin.tradetrack.service;
 
+import com.binance.api.client.exception.BinanceApiException;
 import net.puzatin.tradetrack.model.ChartData;
 import net.puzatin.tradetrack.model.Snapshot;
 import net.puzatin.tradetrack.model.Tracker;
@@ -73,16 +74,24 @@ public class SnapshotServiceImpl implements SnapshotService {
     @Override
     public void firstSnapshot(Tracker tracker) {
 
-        Snapshot snapshot = new Snapshot();
         boolean first = true;
         HashMap<String, String> prices = BinanceUtil.getPrices();
         double BTCprice = BinanceUtil.getBTCprice();
+        double balanceInBTC;
+        double balanceInUSDT;
 
-        double balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(tracker.getPubKey(), tracker.getSecKey(), prices, BTCprice, first);
-        if (balanceInBTC != -1) {
-            double balanceInUSDT = DoubleRounder.round(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC), 2);
+        if (tracker.isOnlyFutures()) {
+           balanceInUSDT = BinanceUtil.getTotalFuturesBalance(tracker.getPubKey(), tracker.getSecKey());
+           balanceInBTC = balanceInUSDT / BTCprice;
+        } else {
+            balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(tracker.getPubKey(), tracker.getSecKey(), prices, BTCprice, first);
+            balanceInUSDT = DoubleRounder.round(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC), 2);
+
+        }
+
             balanceInBTC = DoubleRounder.round(balanceInBTC, 8);
 
+            Snapshot snapshot = new Snapshot();
             snapshot.setTracker(tracker);
             snapshot.setTimestamp(Instant.now().toEpochMilli());
             snapshot.setBalanceInBTC(balanceInBTC);
@@ -94,7 +103,6 @@ public class SnapshotServiceImpl implements SnapshotService {
             trackerService.setValid(tracker);
             add(snapshot);
 
-        }
 
     }
 
@@ -108,33 +116,42 @@ public class SnapshotServiceImpl implements SnapshotService {
             double BTCprice = BinanceUtil.getBTCprice();
             System.out.println(BTCprice);
             List<Tracker> trackers = trackerService.getAllValid();
+
             trackers.parallelStream().forEach(tracker -> {
-                String pub = tracker.getPubKey();
-                String sec = tracker.getSecKey();
 
-                Double firstBalanceInUSDT = getFirstBalanceInUSDT(pub);
-                Double firstBalanceInBTC = getFirstBalanceInBTC(pub);
+                try {
+                    String pub = tracker.getPubKey();
+                    String sec = tracker.getSecKey();
+                    BinanceUtil.checkValidAPI(pub, sec);
 
+                    double deltaDepositInBTC;
+                    double deltaDepositInUSDT;
+                    double balanceInBTC;
+                    double balanceInUSDT;
+                    double profitInUSDT;
+                    double profitInBTC;
+                    Double firstBalanceInUSDT = getFirstBalanceInUSDT(pub);
+                    Double firstBalanceInBTC = getFirstBalanceInBTC(pub);
+                    Long lastTimestamp = getLastTimestamp(pub);
 
-                Long lastTimestamp = getLastTimestamp(pub);
-                double deltaDepositInBTC;
-                double deltaDepositInUSDT;
-                Snapshot snapshot = new Snapshot();
+                    if (tracker.isOnlyFutures()) {
+                        deltaDepositInUSDT = BinanceUtil.getDeltaDepositFuturesInUSDT(pub, sec, lastTimestamp);
+                        deltaDepositInBTC = deltaDepositInUSDT / BTCprice;
+                        balanceInUSDT = BinanceUtil.getTotalFuturesBalance(pub, sec);
+                        balanceInBTC = balanceInUSDT / BTCprice;
+                    } else {
+                        deltaDepositInBTC = DoubleRounder.round(BinanceUtil.getDeltaDepositInBTC(pub, sec, lastTimestamp, prices), 8);
+                        deltaDepositInUSDT = DoubleRounder.round(BinanceUtil.getDeltaDepositInUSDT(BTCprice, deltaDepositInBTC), 2);
+                        balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(pub, sec, prices, BTCprice, first);
+                        balanceInUSDT = DoubleRounder.round(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC), 2);
+                    }
 
-                deltaDepositInBTC = DoubleRounder.round(BinanceUtil.getDeltaDepositInBTC(pub, sec, lastTimestamp, prices), 8);
-                deltaDepositInUSDT = DoubleRounder.round(BinanceUtil.getDeltaDepositInUSDT(BTCprice, deltaDepositInBTC), 2);
-
-
-
-                double balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(pub, sec, prices, BTCprice, first);
-
-                if (balanceInBTC != -1) {
-                    double balanceInUSDT = DoubleRounder.round(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC), 2);
-                    double profitInUSDT = DoubleRounder.round(balanceInUSDT / ((getSumDeltaDepInUSDT(pub) + deltaDepositInUSDT) + firstBalanceInUSDT) * 100 - 100, 2);
-                    double profitInBTC = DoubleRounder.round(balanceInBTC / ((getSumDeltaDepInBTC(pub) + deltaDepositInBTC) + firstBalanceInBTC) * 100 - 100, 2);
+                    profitInBTC = DoubleRounder.round(balanceInBTC / ((getSumDeltaDepInBTC(pub) + deltaDepositInBTC) + firstBalanceInBTC) * 100 - 100, 2);
+                    profitInUSDT = DoubleRounder.round(balanceInUSDT / ((getSumDeltaDepInUSDT(pub) + deltaDepositInUSDT) + firstBalanceInUSDT) * 100 - 100, 2);
                     balanceInBTC = DoubleRounder.round(balanceInBTC, 8);
 
 
+                    Snapshot snapshot = new Snapshot();
                     snapshot.setProfitInUSDT(profitInUSDT);
                     snapshot.setProfitInBTC(profitInBTC);
                     snapshot.setDeltaDepositInBTC(deltaDepositInBTC);
@@ -144,7 +161,7 @@ public class SnapshotServiceImpl implements SnapshotService {
                     snapshot.setTimestamp(Instant.now().toEpochMilli());
                     snapshot.setTracker(tracker);
                     add(snapshot);
-                } else {
+                } catch (BinanceApiException e) {
                     trackerService.setInvalid(tracker);
                 }
 
@@ -166,6 +183,7 @@ public class SnapshotServiceImpl implements SnapshotService {
             balanceUSDT.add(snapshot.getProfitInUSDT());
             date.add(snapshot.getTimestamp());
         });
+        chartData.setOnlyFutures(tracker.isOnlyFutures());
         chartData.setDescription(tracker.getDescription());
         chartData.setProfitInBTC(balanceBTC);
         chartData.setProfitInUSDT(balanceUSDT);

@@ -16,6 +16,16 @@ public class ChartData {
 
     private List<Double> profitInUSDT;
 
+    private boolean isOnlyFutures;
+
+    public boolean isOnlyFutures() {
+        return isOnlyFutures;
+    }
+
+    public void setOnlyFutures(boolean onlyFutures) {
+        isOnlyFutures = onlyFutures;
+    }
+
     public String getDescription() {
         return description;
     }

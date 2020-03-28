@@ -131,10 +131,12 @@
 
         let snapshot = [[${snapshot}]];
 
-        // Create the chart
+
+
         let profitInUSDT = snapshot.profitInUSDT,
             profitInBTC = snapshot.profitInBTC,
             xAxisDate = snapshot.date;
+
 
 
         profitInUSDT = profitInUSDT.map((val, i) => [xAxisDate[i], val])
@@ -188,6 +190,7 @@
                     name: 'profit in BTC',
                     data: profitInBTC,
                     color: '#f79413',
+                    visible: ![[${onlyFutures}]],
                     tooltip: {
                         valueDecimals: 2
                     }

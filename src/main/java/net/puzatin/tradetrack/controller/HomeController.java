@@ -43,11 +43,10 @@ public class HomeController {
         Map<Tracker, Double> map = new HashMap<>();
         List<ChartData> listChartData = new ArrayList<>();
         trackerList.forEach(tracker -> {
-
-            Double lastBalanceBTC = snapshotService.getLastSnapshot(tracker).getBalanceInBTC();
-            Double firstBalanceBTC = snapshotService.getFirstBalanceInBTC(tracker.getPubKey());
-            Double sumDeltaBTC = snapshotService.getSumDeltaDepInBTC(tracker.getPubKey());
-            Double profitForTop = lastBalanceBTC / (firstBalanceBTC + sumDeltaBTC) * 100 - 100;
+            double lastBalanceUSDT = snapshotService.getLastSnapshot(tracker).getBalanceInUSDT();
+            Double firstBalanceUSDT = snapshotService.getFirstBalanceInUSDT(tracker.getPubKey());
+            Double sumDeltaUSDT = snapshotService.getSumDeltaDepInUSDT(tracker.getPubKey());
+            Double profitForTop = lastBalanceUSDT / (firstBalanceUSDT + sumDeltaUSDT) * 100 - 100;
             map.put(tracker, profitForTop);
 
         });
@@ -86,6 +85,7 @@ public class HomeController {
 
 
         if(tracker != null){
+            model.addAttribute("onlyFutures", tracker.isOnlyFutures());
             model.addAttribute("snapshot", snapshotService.fillChartData(tracker));
             return "search";
         } else return "error";
@@ -104,7 +104,7 @@ public class HomeController {
             res.setStatus("FAIL");
             List<FieldError> allErrors = result.getFieldErrors();
 
-            final List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
+            final List<ErrorMessage> errorMessages = new ArrayList<>();
             for (FieldError objectError : allErrors) {
                 errorMessages.add(new ErrorMessage(objectError.getField(), objectError.getDefaultMessage()));
             }
@@ -131,7 +131,7 @@ public class HomeController {
         if(result.hasErrors()) {
             res.setStatus("FAIL");
             List<FieldError> allErrors = result.getFieldErrors();
-            final List<ErrorMessage> errorMessages = new ArrayList<ErrorMessage>();
+            final List<ErrorMessage> errorMessages = new ArrayList<>();
             for (FieldError objectError : allErrors) {
                 errorMessages.add(new ErrorMessage(objectError.getField(), objectError.getDefaultMessage()));
             }

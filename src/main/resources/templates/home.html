@@ -107,6 +107,10 @@
                         <label for="public" >Public:</label>
                         <input type="checkbox" id="public" th:field="*{public}" data-toggle="tooltip" data-placement="top" title="Public trackers can be found by name and they can also get to the top on the main page, private can be found only by public key"  />
                     </div>
+                    <div class="form-group">
+                        <label for="public" >Track only futures:</label>
+                        <input type="checkbox" id="onlyFutures" th:field="*{onlyFutures}" data-toggle="tooltip" data-placement="top" title="only futures account will be tracked"  />
+                    </div>
                     <div id="generalErrorMessage" class="error-lbl" style="display:none;"></div>
                     <button class="btn btn-primary float-right" id="addTrack" type="submit"><span class="spinner-grow spinner-grow-sm d-none" role="status" aria-hidden="true"></span>Add</button>
                 </form>
@@ -158,6 +162,7 @@
             let secKey = $("#secKey").val();
             let description = $("#description").val();
             let public = $("#public").prop('checked');
+            let onlyFutures = $("#onlyFutures").prop('checked');
 
 
 
@@ -166,7 +171,7 @@
                 type : "POST",
                 url : "/",
                 data : "name=" + name + "&pubKey=" + pubKey + "&secKey=" + secKey
-                        + "&description=" + description + "&public=" + public,
+                        + "&description=" + description + "&public=" + public + "&onlyFutures=" + onlyFutures,
                 beforeSend: function () {
                     _this
                         .prop('disabled', true)
@@ -249,11 +254,16 @@
         profitInUSDT = profitInUSDT.map((val, i) => [xAxisDate[i], val])
         profitInBTC = profitInBTC.map((val, i) => [xAxisDate[i], val])
 
+
         return {
 
             title: {
+                style: {
+                    color: '#332eff',
+                },
                 useHTML: false,
-                text:   '<a href="/tracker/' + snapshot.name + '"> ' + snapshot.name + ' </a>'
+                text:   '<a href="/tracker/' + snapshot.name + '"> ' + snapshot.name + ' </a>',
+
             },
             navigator: {
                 enabled: false
@@ -307,10 +317,12 @@
                     valueDecimals: 2
                 }
             },
+
                 {
                     name: 'profit in BTC',
                     data: profitInBTC,
                     color: '#f79413',
+                    visible: !snapshot.onlyFutures,
                     tooltip: {
                         valueDecimals: 2
                     }

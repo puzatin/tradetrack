@@ -40,6 +40,34 @@ public class Tracker {
     @Column(name = "is_valid")
     private boolean isValid;
 
+    @Column(name = "is_only_futures")
+    private boolean isOnlyFutures;
+
+    public boolean isOnlyFutures() {
+        return isOnlyFutures;
+    }
+
+    public void setOnlyFutures(boolean onlyFutures) {
+        isOnlyFutures = onlyFutures;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean aPublic) {
+        isPublic = aPublic;
+    }
+
+    public boolean isValid() {
+        return isValid;
+    }
+
+    public void setValid(boolean valid) {
+        isValid = valid;
+    }
+
+
     public String getDescription() {
         return description;
     }
@@ -56,14 +84,6 @@ public class Tracker {
         this.snapshots = snapshots;
     }
 
-    public void setValid(boolean valid) {
-        isValid = valid;
-    }
-
-    public boolean isValid() {
-        return isValid;
-    }
-
     public String getPubKey() {
         return pubKey;
     }
@@ -78,14 +98,6 @@ public class Tracker {
 
     public void setSecKey(String secKey) {
         this.secKey = secKey;
-    }
-
-    public boolean isPublic() {
-        return isPublic;
-    }
-
-    public void setPublic(boolean isPublic) {
-        this.isPublic = isPublic;
     }
 
     public String getName() {
