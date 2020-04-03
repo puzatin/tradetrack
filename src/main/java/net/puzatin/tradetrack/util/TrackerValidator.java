@@ -41,16 +41,17 @@ public class TrackerValidator implements Validator {
             errors.rejectValue("pubKey","","tracker already exists");
         }
 
-        double balanceInBTC;
-        double balanceInUSDT;
 
 
-        try {
-            BinanceUtil.checkValidAPI(tracker.getPubKey(),tracker.getSecKey());
-            if (tracker.isOnlyFutures()){
+        if(BinanceUtil.checkValidAPI(tracker.getPubKey(),tracker.getSecKey())) {
+
+            double balanceInBTC;
+            double balanceInUSDT;
+
+            if (tracker.isOnlyFutures()) {
                 balanceInUSDT = BinanceUtil.getTotalFuturesBalance(tracker.getPubKey(), tracker.getSecKey());
             } else {
-                balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(tracker.getPubKey(), tracker.getSecKey(), prices, BTCprice, true);
+                balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(tracker.getPubKey(), tracker.getSecKey(), prices, BTCprice);
                 balanceInUSDT = BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC);
             }
 
@@ -58,9 +59,9 @@ public class TrackerValidator implements Validator {
                 errors.rejectValue("public", "", "you must have a total of at least 10USDT on your account");
             }
 
-        } catch (BinanceApiException e) {
-            errors.rejectValue("pubKey", "", "invalid API-key or permission");
-        }
+        } else errors.rejectValue("pubKey", "", "invalid API-key or permission");
+
+
 
 
 

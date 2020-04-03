@@ -107,4 +107,32 @@ public class Tracker {
     public void setName(String name) {
         this.name = name;
     }
+
+    @Override
+    public String toString() {
+        return "Tracker{" +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", snapshots=" + snapshots +
+                ", isPublic=" + isPublic +
+                ", isValid=" + isValid +
+                ", isOnlyFutures=" + isOnlyFutures +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Tracker tracker = (Tracker) o;
+
+        if (!pubKey.equals(tracker.pubKey)) return false;
+        return secKey.equals(tracker.secKey);
+    }
+
+    @Override
+    public int hashCode() {
+        return pubKey.chars().limit(10).reduce((Integer::sum)).getAsInt();
+    }
 }

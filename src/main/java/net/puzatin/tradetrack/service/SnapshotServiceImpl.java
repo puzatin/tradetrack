@@ -74,7 +74,6 @@ public class SnapshotServiceImpl implements SnapshotService {
     @Override
     public void firstSnapshot(Tracker tracker) {
 
-        boolean first = true;
         HashMap<String, String> prices = BinanceUtil.getPrices();
         double BTCprice = BinanceUtil.getBTCprice();
         double balanceInBTC;
@@ -84,9 +83,8 @@ public class SnapshotServiceImpl implements SnapshotService {
            balanceInUSDT = BinanceUtil.getTotalFuturesBalance(tracker.getPubKey(), tracker.getSecKey());
            balanceInBTC = balanceInUSDT / BTCprice;
         } else {
-            balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(tracker.getPubKey(), tracker.getSecKey(), prices, BTCprice, first);
+            balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(tracker.getPubKey(), tracker.getSecKey(), prices, BTCprice);
             balanceInUSDT = DoubleRounder.round(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC), 2);
-
         }
 
             balanceInBTC = DoubleRounder.round(balanceInBTC, 8);
@@ -111,61 +109,63 @@ public class SnapshotServiceImpl implements SnapshotService {
     public void recordSnapshot(){
 
         if(BinanceUtil.ping()) {
-            boolean first = false;
             HashMap<String, String> prices = BinanceUtil.getPrices();
             double BTCprice = BinanceUtil.getBTCprice();
             System.out.println(BTCprice);
             List<Tracker> trackers = trackerService.getAllValid();
 
             trackers.parallelStream().forEach(tracker -> {
+                String pub = tracker.getPubKey();
+                String sec = tracker.getSecKey();
 
-                try {
-                    String pub = tracker.getPubKey();
-                    String sec = tracker.getSecKey();
-                    BinanceUtil.checkValidAPI(pub, sec);
+                if(BinanceUtil.checkValidAPI(pub, sec)) {
 
-                    double deltaDepositInBTC;
-                    double deltaDepositInUSDT;
-                    double balanceInBTC;
-                    double balanceInUSDT;
-                    double profitInUSDT;
-                    double profitInBTC;
-                    Double firstBalanceInUSDT = getFirstBalanceInUSDT(pub);
-                    Double firstBalanceInBTC = getFirstBalanceInBTC(pub);
-                    Long lastTimestamp = getLastTimestamp(pub);
+                        double deltaDepositInBTC;
+                        double deltaDepositInUSDT;
+                        double balanceInBTC;
+                        double balanceInUSDT;
+                        double profitInUSDT;
+                        double profitInBTC;
+                        Double firstBalanceInUSDT = getFirstBalanceInUSDT(pub);
+                        Double firstBalanceInBTC = getFirstBalanceInBTC(pub);
+                        Long lastTimestamp = getLastTimestamp(pub);
 
-                    if (tracker.isOnlyFutures()) {
-                        deltaDepositInUSDT = BinanceUtil.getDeltaDepositFuturesInUSDT(pub, sec, lastTimestamp);
-                        deltaDepositInBTC = deltaDepositInUSDT / BTCprice;
-                        balanceInUSDT = BinanceUtil.getTotalFuturesBalance(pub, sec);
-                        balanceInBTC = balanceInUSDT / BTCprice;
-                    } else {
-                        deltaDepositInBTC = DoubleRounder.round(BinanceUtil.getDeltaDepositInBTC(pub, sec, lastTimestamp, prices), 8);
-                        deltaDepositInUSDT = DoubleRounder.round(BinanceUtil.getDeltaDepositInUSDT(BTCprice, deltaDepositInBTC), 2);
-                        balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(pub, sec, prices, BTCprice, first);
-                        balanceInUSDT = DoubleRounder.round(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC), 2);
-                    }
+                        if (tracker.isOnlyFutures()) {
+                            balanceInUSDT = BinanceUtil.getTotalFuturesBalance(pub, sec);
+                            if(balanceInUSDT == 0){
+                                trackerService.setInvalid(tracker);
+                                return;
+                            }
+                                deltaDepositInUSDT = BinanceUtil.getDeltaDepositFuturesInUSDT(pub, sec, lastTimestamp);
+                                deltaDepositInBTC = deltaDepositInUSDT / BTCprice;
+                                balanceInBTC = balanceInUSDT / BTCprice;
 
-                    profitInBTC = DoubleRounder.round(balanceInBTC / ((getSumDeltaDepInBTC(pub) + deltaDepositInBTC) + firstBalanceInBTC) * 100 - 100, 2);
-                    profitInUSDT = DoubleRounder.round(balanceInUSDT / ((getSumDeltaDepInUSDT(pub) + deltaDepositInUSDT) + firstBalanceInUSDT) * 100 - 100, 2);
-                    balanceInBTC = DoubleRounder.round(balanceInBTC, 8);
+                        } else {
+                            deltaDepositInBTC = DoubleRounder.round(BinanceUtil.getDeltaDepositInBTC(pub, sec, lastTimestamp, prices), 8);
+                            deltaDepositInUSDT = DoubleRounder.round(BinanceUtil.getDeltaDepositInUSDT(BTCprice, deltaDepositInBTC), 2);
+                            balanceInBTC = BinanceUtil.getTotalAccountBalanceInBTC(pub, sec, prices, BTCprice);
+                            balanceInUSDT = DoubleRounder.round(BinanceUtil.getTotalAccountBalanceInUSDT(BTCprice, balanceInBTC), 2);
+                        }
+
+                        profitInBTC = DoubleRounder.round(balanceInBTC / ((getSumDeltaDepInBTC(pub) + deltaDepositInBTC) + firstBalanceInBTC) * 100 - 100, 2);
+                        profitInUSDT = DoubleRounder.round(balanceInUSDT / ((getSumDeltaDepInUSDT(pub) + deltaDepositInUSDT) + firstBalanceInUSDT) * 100 - 100, 2);
+                        balanceInBTC = DoubleRounder.round(balanceInBTC, 8);
 
 
-                    Snapshot snapshot = new Snapshot();
-                    snapshot.setProfitInUSDT(profitInUSDT);
-                    snapshot.setProfitInBTC(profitInBTC);
-                    snapshot.setDeltaDepositInBTC(deltaDepositInBTC);
-                    snapshot.setDeltaDepositInUSDT(deltaDepositInUSDT);
-                    snapshot.setBalanceInBTC(balanceInBTC);
-                    snapshot.setBalanceInUSDT(balanceInUSDT);
-                    snapshot.setTimestamp(Instant.now().toEpochMilli());
-                    snapshot.setTracker(tracker);
-                    add(snapshot);
-                } catch (BinanceApiException e) {
-                    trackerService.setInvalid(tracker);
-                }
+                        Snapshot snapshot = new Snapshot();
+                        snapshot.setProfitInUSDT(profitInUSDT);
+                        snapshot.setProfitInBTC(profitInBTC);
+                        snapshot.setDeltaDepositInBTC(deltaDepositInBTC);
+                        snapshot.setDeltaDepositInUSDT(deltaDepositInUSDT);
+                        snapshot.setBalanceInBTC(balanceInBTC);
+                        snapshot.setBalanceInUSDT(balanceInUSDT);
+                        snapshot.setTimestamp(Instant.now().toEpochMilli());
+                        snapshot.setTracker(tracker);
+                        add(snapshot);
 
+                } else trackerService.setInvalid(tracker);
             });
+
 
         }
     }
