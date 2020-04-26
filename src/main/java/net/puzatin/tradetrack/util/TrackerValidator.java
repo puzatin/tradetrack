@@ -1,7 +1,7 @@
 package net.puzatin.tradetrack.util;
 
 
-import com.binance.api.client.exception.BinanceApiException;
+
 import net.puzatin.tradetrack.model.Tracker;
 import net.puzatin.tradetrack.service.TrackerService;
 import org.springframework.beans.factory.annotation.Autowired;

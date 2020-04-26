@@ -55,15 +55,13 @@ public class TrackerServiceImpl implements TrackerService {
     @Override
     public void update(Tracker tracker) {
        Optional<Tracker> track = trackerRepository.findById(tracker.getPubKey());
-        if(track.isPresent())
-        {
+        if(track.isPresent()){
             Tracker updTrack = track.get();
             updTrack.setName(tracker.getName());
             updTrack.setDescription(tracker.getDescription());
             updTrack.setPublic(tracker.isPublic());
 
             trackerRepository.save(updTrack);
-
         } else {
             trackerRepository.save(tracker);
         }
@@ -72,14 +70,10 @@ public class TrackerServiceImpl implements TrackerService {
 
     @Override
     public void delete(String pubKey) {
-        Optional<Tracker> employee = trackerRepository.findById(pubKey);
+        Optional<Tracker> tracker = trackerRepository.findById(pubKey);
 
-        if(employee.isPresent())
-        {
+        if(tracker.isPresent())
             trackerRepository.deleteById(pubKey);
-        } else {
-            System.out.println("No employee record exist for given id");
-        }
     }
 
 

@@ -23,6 +23,8 @@ import java.util.*;
 @Controller
 public class HomeController {
 
+    private final int PLACES_IN_TOP = 10;
+
     @Autowired
     private TrackerService trackerService;
 
@@ -35,7 +37,7 @@ public class HomeController {
 
 
 
-
+    // TODO сделать кеширование, чтобы код не выполнялся при каждом запросе главной страницы
     @GetMapping("/")
     public String home(Model model){
         model.addAttribute("tracker", new Tracker());
@@ -52,7 +54,7 @@ public class HomeController {
         });
 
         map.entrySet().stream()
-                .sorted(Map.Entry.<Tracker, Double>comparingByValue().reversed()).limit(10)
+                .sorted(Map.Entry.<Tracker, Double>comparingByValue().reversed()).limit(PLACES_IN_TOP)
                 .forEach(entryMap -> {
                     listChartData.add(snapshotService.fillChartData(entryMap.getKey()));
                 });
@@ -119,7 +121,6 @@ public class HomeController {
 
     @PostMapping("/update")
     public @ResponseBody ValidationResponse update(@Valid @ModelAttribute Tracker tracker, BindingResult result){
-
 
         ValidationResponse res = new ValidationResponse();
         String oldName = trackerService.findByPubKey(tracker.getPubKey()).getName();

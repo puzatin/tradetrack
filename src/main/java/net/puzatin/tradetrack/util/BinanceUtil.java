@@ -112,9 +112,6 @@ public final class BinanceUtil {
     }
 
 
-
-
-
     public static HashMap<String, String> getPrices() {
         HashMap<String, String> prices = new HashMap<>();
         for (TickerPrice tickerPrice : client.getAllPrices()) {
