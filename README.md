@@ -36,7 +36,7 @@
 
 # Связь с автором:
 
-Telegram: **[@puzatin](http://t.me/puzatin)**
+Telegram: **[@puzatin](http://t.me/puzatins)**
 
 
 
